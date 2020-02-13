@@ -1,0 +1,12 @@
+
+development:
+  dialect: mysql
+  datasource: root:root@tcp(127.0.0.1:13306)/oauth2?charset=utf8mb4&parseTime=true
+  dir: db/migrations
+  table: migrations
+
+production:
+  dialect: mysql
+  datasource: root:root@tcp(127.0.0.1:13306)/oauth2?charset=utf8mb4&parseTime=true
+  dir: db/migrations
+  table: migrations
