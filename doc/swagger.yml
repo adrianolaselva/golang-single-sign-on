@@ -1,0 +1,413 @@
+swagger: "2.0"
+info:
+  version: "v1"
+  title: "Single Sign-on Golang"
+host: sign.aglaia.com
+schemes:
+  - https
+securityDefinitions:
+  basicAuth:
+    type: basic
+  OAuth2:
+    type: oauth2
+    flow: password
+    tokenUrl: https://sign.aglaia.com/oauth2/token
+    scopes:
+      users:write: write users
+      users:read: read users
+      users:edit: edit users
+      users:delete: delete users
+      clients:write: write users
+      clients:read: read users
+      clients:edit: edit users
+      clients:delete: delete users
+      tokens:revoke: revoke token
+paths:
+  '/oauth2/authorize':
+    get:
+      tags:
+        - OAuth2
+      description: |
+        Create configuration
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: query
+          name: response_type
+          required: true
+          type: string
+          enum:
+            - code
+            - token
+          description: |
+            The response type. Must be code or token. Indicates whether the client wants an authorization code (authorization code grant flow) for the end user or directly issues tokens for end user (implicit flow)
+        - in: query
+          name: client_id
+          required: true
+          type: string
+          description: |
+            The Client ID.
+        - in: query
+          name: redirect_uri
+          required: true
+          type: string
+          description: |
+            The URL to which the authentication server redirects the browser after authorization has been granted by the user.
+        - in: query
+          name: state
+          required: true
+          type: string
+          description: |
+            An opaque value the clients adds to the initial request. The authorization server includes this value when redirecting back to the client.
+        - in: query
+          name: scope
+          required: true
+          type: string
+          description: |
+            Can be a combination of any system-reserved scopes or custom scopes associated with a client. Scopes must be separated by spaces.
+            Example: customer:write customer:read customer:delete
+      responses:
+        '302':
+          description: redirect uri with result request.
+  '/oauth2/login':
+    get:
+      tags:
+        - OAuth2
+      description: |
+        Create configuration
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: query
+          name: response_type
+          required: true
+          type: string
+          enum:
+            - code
+            - token
+          description: |
+            The response type. Must be code or token. Indicates whether the client wants an authorization code (authorization code grant flow) for the end user or directly issues tokens for end user (implicit flow)
+        - in: query
+          name: client_id
+          required: true
+          type: string
+          description: |
+            The Client ID.
+        - in: query
+          name: redirect_uri
+          required: true
+          type: string
+          description: |
+            The URL to which the authentication server redirects the browser after authorization has been granted by the user.
+        - in: query
+          name: state
+          required: true
+          type: string
+          description: |
+            An opaque value the clients adds to the initial request. The authorization server includes this value when redirecting back to the client.
+        - in: query
+          name: scope
+          required: true
+          type: string
+          description: |
+            Can be a combination of any system-reserved scopes or custom scopes associated with a client. Scopes must be separated by spaces.
+            Example: customer:write customer:read customer:delete
+      responses:
+        '302':
+          description: redirect uri with result request.
+  '/oauth2/token':
+    post:
+      tags:
+        - OAuth2
+      description: |
+        Create configuration
+      consumes:
+        - "application/x-www-form-urlencoded"
+      produces:
+        - "application/json"
+      parameters:
+        - in: formData
+          name: grant_type
+          required: true
+          type: string
+          enum:
+            - authorization_code
+            - refresh_token
+            - client_credentials
+          description: |
+            Grant type.
+            Must be authorization_code or refresh_token or client_credentials.
+        - in: formData
+          name: client_id
+          required: true
+          type: string
+          description: |
+            Client ID.
+            Must be a preregistered client in the user pool. The client must be enabled for Amazon Cognito federation.
+            Required if the client is public and does not have a secret.
+        - in: formData
+          name: scope
+          required: false
+          type: string
+          description: |
+            Can be a combination of any custom scopes associated with a client. Any scope requested must be preassociated with the client or it will be ignored at runtime. If the client doesn't request any scopes, the authentication server uses all custom scopes associated with the client.
+            Optional. Only used if the grant_type is client_credentials.
+        - in: formData
+          name: redirect_uri
+          required: false
+          type: string
+          description: |
+            Must be the same redirect_uri that was used to get authorization_code in /oauth2/authorize.
+            Required only if grant_type is authorization_code.
+        - in: formData
+          name: refresh_token
+          required: false
+          type: string
+          description: |
+            The refresh token.
+        - in: formData
+          name: code
+          required: false
+          type: string
+          description: |
+            The refresh token.
+      responses:
+        '200':
+          description: Dados processados com sucesso.
+          schema:
+            $ref: '#/definitions/token'
+        "400":
+          description: "failed."
+        "401":
+          description: "access denied."
+        "404":
+          description: "not found."
+        "500":
+          description: "internal error."
+  '/oauth2/userInfo':
+    get:
+      tags:
+        - OAuth2
+      security:
+        - OAuth2: []
+      description: |
+        Create configuration
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      responses:
+        '200':
+          description: Dados processados com sucesso.
+          schema:
+            $ref: '#/definitions/userInfo'
+        "400":
+          description: "failed."
+        "401":
+          description: "access denied."
+        "404":
+          description: "not found."
+        "500":
+          description: "internal error."
+  '/v1/users':
+    get:
+      tags:
+        - Users
+      security:
+        - OAuth2: []
+      description: |
+        List user
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      responses:
+        '200':
+          description: Dados processados com sucesso.
+          schema:
+            $ref: '#/definitions/userPagination'
+        "400":
+          description: "failed."
+        "401":
+          description: "access denied."
+        "404":
+          description: "not found."
+        "500":
+          description: "internal error."
+    post:
+      tags:
+        - Users
+      security:
+        - OAuth2: []
+      description: |
+        Create user
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      responses:
+        '200':
+          description: Dados processados com sucesso.
+          schema:
+            $ref: '#/definitions/user'
+        "400":
+          description: "failed."
+        "401":
+          description: "access denied."
+        "404":
+          description: "not found."
+        "500":
+          description: "internal error."
+  '/v1/users/{uuid}':
+    get:
+      tags:
+        - Users
+      security:
+        - OAuth2: []
+      description: |
+        Load user
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          type: string
+          description: |
+            ID user.
+      responses:
+        '200':
+          description: Dados processados com sucesso.
+          schema:
+            $ref: '#/definitions/user'
+        "400":
+          description: "failed."
+        "401":
+          description: "access denied."
+        "404":
+          description: "not found."
+        "500":
+          description: "internal error."
+    put:
+      tags:
+        - Users
+      security:
+        - OAuth2: []
+      description: |
+        Update user
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: path
+          name: uuid
+          required: true
+          type: string
+          description: |
+            ID user.
+      responses:
+        '200':
+          description: Dados processados com sucesso.
+          schema:
+            $ref: '#/definitions/user'
+        "400":
+          description: "failed."
+        "401":
+          description: "access denied."
+        "404":
+          description: "not found."
+        "500":
+          description: "internal error."
+
+definitions:
+  user:
+    type: "object"
+    properties:
+      uuid:
+        type: string
+      username:
+        type: string
+      email:
+        type: string
+      password:
+        type: string
+      birthday:
+        type: string
+      activated:
+        type: string
+      created_at:
+        type: string
+        format: timestamp
+        example: "2012-12-02 00:30:08"
+      updated_at:
+        type: string
+        format: timestamp
+        example: "2012-12-02 00:30:08"
+      deleted_at:
+        type: string
+        format: timestamp
+        example: "2012-12-02 00:30:08"
+  userPagination:
+    type: "object"
+    properties:
+      current_page:
+        type: integer
+        example: 1
+      from:
+        type: integer
+      next_page_url:
+        type: string
+        example: "/users?page=2"
+      path:
+        type: string
+      per_page:
+        type: integer
+      prev_page_url:
+        type: string
+        example: "/users?page=1"
+      to:
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/user'
+  token:
+    type: "object"
+    properties:
+      access_token:
+        type: string
+        example: "eyJz9sdfsdfsdfsd"
+      refresh_token:
+        type: string
+        example: "dn43ud8uj32nk2je"
+      id_token:
+        type: string
+        example: "dmcxd329ujdmkemkd349r"
+      token_type:
+        type: string
+        example: "Bearer"
+      expires_in:
+        type: integer
+        example: 3600
+  userInfo:
+    type: "object"
+    properties:
+      sub:
+        type: string
+        example: "1234567890"
+      name:
+        type: string
+        example: "dn43ud8uj32nk2je"
+      iat:
+        type: integer
+        example: 1516239022
+      email:
+        type: string
+        example: "adrianolaselva@gmail.com"

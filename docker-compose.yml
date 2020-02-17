@@ -6,7 +6,7 @@ services:
     image: mysql:5.7
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: db-oauth-server
+      MYSQL_DATABASE: db_oauth
     command: mysqld --innodb-buffer-pool-size=64M
     volumes:
       - db-oauth-server-go-data:/var/lib/mysql
