@@ -11,7 +11,7 @@ securityDefinitions:
   OAuth2:
     type: oauth2
     flow: password
-    tokenUrl: https://sign.aglaia.com/oauth2/token
+    tokenUrl: https://app.aglaia.com/oauth2/token
     scopes:
       users:write: write users
       users:read: read users

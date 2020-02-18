@@ -6,15 +6,15 @@ import (
 )
 
 type Role struct {
-	Name string	`gorm:"column:name;type:varchar(100);primary_key;"`
+	ID      string 	`gorm:"column:id;type:varchar(36);primary_key;"`
+	Name 	string	`gorm:"column:name;type:varchar(100);unique_index;"`
 }
 
 func (Role) TableName() string {
-	return "roles"
+	return "oauth_roles"
 }
 
 func (Role) BeforeCreate(scope *gorm.Scope) error {
-	uuid := uuid.New()
-	scope.SetColumn("Uuid", uuid)
+	_ = scope.SetColumn("ID", uuid.New().String())
 	return nil
 }

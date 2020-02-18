@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"oauth2/src/common"
 	"oauth2/src/controllers"
+	"oauth2/src/middlewares"
 )
 
 type OAuth interface {
@@ -33,12 +34,16 @@ func (o *oAuthImpl) Routes() []*common.Route {
 		{
 			http.MethodPost,
 			"/oauth2/token",
-			http.HandlerFunc(o.oAuthController.PostToken),
+			middlewares.
+				NewAuthenticationMiddleware().
+				ValidateClientIdAndSecret(http.HandlerFunc(o.oAuthController.PostToken)),
 		},
 		{
 			http.MethodGet,
 			"/oauth2/user-info",
-			http.HandlerFunc(o.oAuthController.GetUserInfo),
+			middlewares.
+				NewAuthenticationMiddleware().
+				ValidateJWTToken(http.HandlerFunc(o.oAuthController.GetUserInfo)),
 		},
 	}
 }
