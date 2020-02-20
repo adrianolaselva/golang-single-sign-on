@@ -13,10 +13,13 @@ type OAuth interface {
 
 type oAuthImpl struct {
 	oAuthController controllers.OAuthController
+	authenticationMiddleware middlewares.AuthenticationMiddleware
 }
 
-func NewOAuthRoutes(oAuthController controllers.OAuthController) *oAuthImpl {
-	return &oAuthImpl{oAuthController}
+func NewOAuthRoutes(
+	oAuthController controllers.OAuthController,
+	authenticationMiddleware middlewares.AuthenticationMiddleware) *oAuthImpl {
+	return &oAuthImpl{oAuthController, authenticationMiddleware}
 }
 
 func (o *oAuthImpl) Routes() []*common.Route {
@@ -34,16 +37,14 @@ func (o *oAuthImpl) Routes() []*common.Route {
 		{
 			http.MethodPost,
 			"/oauth2/token",
-			middlewares.
-				NewAuthenticationMiddleware().
+			o.authenticationMiddleware.
 				ValidateClientIdAndSecret(http.HandlerFunc(o.oAuthController.PostToken)),
 		},
 		{
 			http.MethodGet,
 			"/oauth2/user-info",
-			middlewares.
-				NewAuthenticationMiddleware().
-				ValidateJWTToken(http.HandlerFunc(o.oAuthController.GetUserInfo)),
+			o.authenticationMiddleware.
+				ValidateJWTToken(http.HandlerFunc(o.oAuthController.PostToken), []string{}),
 		},
 	}
 }

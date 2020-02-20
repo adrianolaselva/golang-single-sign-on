@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/jinzhu/gorm"
+	"oauth2/src/dto"
 	"oauth2/src/models"
 )
 
@@ -12,6 +13,7 @@ type UserRepository interface {
 	FindById(uuid string) (*models.User, error)
 	FindByUsername(username string) (*models.User, error)
 	FindByEmail(email string) (*models.User, error)
+	Paginate(filters map[string]interface{}, orderBy map[string]interface{}, limit int, page int)  (*dto.Pagination, error)
 }
 
 type userRepositoryImpl struct {
@@ -39,7 +41,7 @@ func (u *userRepositoryImpl) Update(user *models.User) error {
 }
 
 func (u *userRepositoryImpl) Delete(uuid string) error {
-	result := u.conn.Delete(&models.User{}).Where("uuid = ?", uuid)
+	result := u.conn.Delete(&models.User{}).Where("id = ?", uuid)
 	if result.Error != nil {
 		return result.Error
 	}
@@ -47,28 +49,72 @@ func (u *userRepositoryImpl) Delete(uuid string) error {
 }
 
 func (u *userRepositoryImpl) FindById(uuid string) (*models.User, error) {
-	var user *models.User
-	result := u.conn.First(&user).Where("uuid = ?", uuid)
+	var user models.User
+	result := u.conn.Preload("Roles").Where("id = ?", uuid).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return user, nil
+	return &user, nil
 }
 
 func (u *userRepositoryImpl) FindByUsername(username string) (*models.User, error) {
-	var user *models.User
-	result := u.conn.First(&user).Where("username = ?", username)
+	var user models.User
+	result := u.conn.Preload("Roles").Where("username = ?", username).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return user, nil
+	return &user, nil
 }
 
 func (u *userRepositoryImpl) FindByEmail(email string) (*models.User, error) {
-	var user *models.User
-	result := u.conn.First(&user).Where("email = ?", email)
+	var user models.User
+	result := u.conn.Preload("Roles").Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return user, nil
+	return &user, nil
+}
+
+func (u *userRepositoryImpl) Paginate(filters map[string]interface{}, orderBy map[string]interface{}, limit int, page int)  (*dto.Pagination, error) {
+
+	if page == 0 {
+		page = 1
+	}
+
+	result := u.conn.
+		Order(orderBy).
+		Where(filters).
+		Limit(limit).
+		Offset((page-1)*limit).
+		Find(&[]*models.User{})
+
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	var total int
+	result.Count(&total)
+	rows, err := result.Rows()
+	if err != nil {
+		return nil, err
+	}
+	pages := (total+limit)/limit
+
+	var users []*models.User
+	for rows.Next() {
+		var user models.User
+		err := u.conn.ScanRows(rows, &user)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, &user)
+	}
+
+	return &dto.Pagination{
+		Current:      page,
+		PerPage:      limit,
+		TotalPages:   pages,
+		TotalRecords: total,
+		Data:         users,
+	}, nil
 }

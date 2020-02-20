@@ -9,8 +9,10 @@ import (
 	"net/http"
 	"oauth2/src/common"
 	"oauth2/src/controllers"
+	"oauth2/src/middlewares"
 	"oauth2/src/repository"
 	"oauth2/src/routes"
+	"oauth2/src/service"
 	"os"
 )
 
@@ -37,15 +39,21 @@ func (a * Bootstrap) Run() {
 	// Initialize repositories
 	userRepository := repository.NewUserRepository(&conn)
 
+	// Inicialize services
+	userService := service.NewUserService(userRepository)
+
 	// Initialize controllers
 	healthController := controllers.NewHealthController()
 	oauthController := controllers.NewOAuthController()
-	userController := controllers.NewUserController(userRepository)
+	userController := controllers.NewUserController(userService)
+
+	// Initialize middlewares
+	authenticationMiddleware := middlewares.NewAuthenticationMiddleware(userService)
 
 	routeCommon := common.Route{}
 	routeCommon.Initialize(router, routes.NewHealthRoutes(healthController).Routes())
-	routeCommon.Initialize(router, routes.NewOAuthRoutes(oauthController).Routes())
-	routeCommon.Initialize(router, routes.NewUserRoutes(userController).Routes())
+	routeCommon.Initialize(router, routes.NewOAuthRoutes(oauthController, authenticationMiddleware).Routes())
+	routeCommon.Initialize(router, routes.NewUserRoutes(userController, authenticationMiddleware).Routes())
 
 	headers := handlers.AllowedHeaders([]string{"Content-Type", "X-Request", "Location", "Entity", "Accept"})
 	methods := handlers.AllowedMethods([]string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete})

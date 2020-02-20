@@ -7,24 +7,35 @@ const (
 	yyyymmddHhmmss = "2006-01-02 15:04:05"
 )
 
-type DateCommon struct {
+type DateCommon interface {
+	ConvertFromDateStr(dateStr string) time.Time
+	ConvertFromDateTimeStr(datetimeStr string) time.Time
+	ConvertFromDate(date time.Time) string
+	ConvertFromDateTime(date time.Time) string
+}
+
+type dateCommonImpl struct {
 
 }
 
-func (d *DateCommon) ConvertFromDateStr(dateStr string) time.Time {
+func NewDateCommon() *dateCommonImpl  {
+	return &dateCommonImpl{}
+}
+
+func (d *dateCommonImpl) ConvertFromDateStr(dateStr string) time.Time {
 	date, _ := time.Parse(yyyyMmDd, dateStr)
 	return date
 }
 
-func (d *DateCommon) ConvertFromDateTimeStr(datetimeStr string) time.Time {
+func (d *dateCommonImpl) ConvertFromDateTimeStr(datetimeStr string) time.Time {
 	date, _ := time.Parse(yyyymmddHhmmss, datetimeStr)
 	return date
 }
 
-func (d *DateCommon) ConvertFromDate(date time.Time) string {
+func (d *dateCommonImpl) ConvertFromDate(date time.Time) string {
 	return date.Format(yyyyMmDd)
 }
 
-func (d *DateCommon) ConvertFromDateTime(date time.Time) string {
+func (d *dateCommonImpl) ConvertFromDateTime(date time.Time) string {
 	return date.Format(yyyymmddHhmmss)
 }

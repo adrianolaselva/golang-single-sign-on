@@ -2,8 +2,9 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"net/http"
-	"oauth2/src/repository"
+	"oauth2/src/service"
 )
 
 type UserController interface {
@@ -15,16 +16,26 @@ type UserController interface {
 }
 
 type userControllerImpl struct {
-	userRepository repository.UserRepository
+	userService service.UserService
 }
 
-func NewUserController(userRepository repository.UserRepository) *userControllerImpl {
-	return &userControllerImpl{userRepository}
+func NewUserController(userService service.UserService) *userControllerImpl {
+	return &userControllerImpl{userService}
 }
 
 func (h *userControllerImpl) GetUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	data := make(map[string]string)
+	pathParams := mux.Vars(r)
+
+	if pathParams["uuid"] == "" {
+		response := make(map[string]interface{})
+		response["message"] = "id user is not defined"
+		w.WriteHeader(http.StatusNotFound)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
+
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(data)
 }
@@ -45,14 +56,32 @@ func (h *userControllerImpl) PostUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *userControllerImpl) PutUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	data := make(map[string]string)
+
+	pathParams := mux.Vars(r)
+	if pathParams["uuid"] == "" {
+		response := make(map[string]interface{})
+		response["message"] = "id user is not defined"
+		w.WriteHeader(http.StatusNotFound)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(data)
 }
 
 func (h *userControllerImpl) DeleteUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	data := make(map[string]string)
+
+	pathParams := mux.Vars(r)
+	if pathParams["uuid"] == "" {
+		response := make(map[string]interface{})
+		response["message"] = "id user is not defined"
+		w.WriteHeader(http.StatusNotFound)
+		_ = json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(data)
 }

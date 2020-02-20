@@ -2,10 +2,10 @@
 -- +migrate Up
 create table if not exists oauth_users (
   id varchar(36) not null,
-  name varchar(50) NOT NULL,
-  last_name varchar(50) NOT NULL,
-  email varchar(50) NOT NULL,
-  username varchar(50) NOT NULL,
+  name varchar(120) NOT NULL,
+  last_name varchar(120) NOT NULL,
+  email varchar(120) NOT NULL,
+  username varchar(120) NOT NULL,
   password varchar(500) NOT NULL,
   birthday date null,
   activated boolean default false,
