@@ -9,23 +9,23 @@ import (
 	"oauth2/src/service"
 )
 
-type UserController interface {
-	GetUser(w http.ResponseWriter, r *http.Request)
-	GetUsers(w http.ResponseWriter, r *http.Request)
-	PostUser(w http.ResponseWriter, r *http.Request)
-	PutUser(w http.ResponseWriter, r *http.Request)
-	DeleteUser(w http.ResponseWriter, r *http.Request)
+type RoleController interface {
+	GetRole(w http.ResponseWriter, r *http.Request)
+	GetRoles(w http.ResponseWriter, r *http.Request)
+	PostRole(w http.ResponseWriter, r *http.Request)
+	PutRole(w http.ResponseWriter, r *http.Request)
+	DeleteRole(w http.ResponseWriter, r *http.Request)
 }
 
-type userControllerImpl struct {
-	userService service.UserService
+type roleControllerImpl struct {
+	roleService service.RoleService
 }
 
-func NewUserController(userService service.UserService) *userControllerImpl {
-	return &userControllerImpl{userService}
+func NewRoleController(roleService service.RoleService) *roleControllerImpl {
+	return &roleControllerImpl{roleService}
 }
 
-func (h *userControllerImpl) GetUser(w http.ResponseWriter, r *http.Request) {
+func (h *roleControllerImpl) GetRole(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	pathParams := mux.Vars(r)
@@ -38,7 +38,7 @@ func (h *userControllerImpl) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userService.FindById(pathParams["uuid"])
+	role, err := h.roleService.FindById(pathParams["uuid"])
 	if  err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(&dto.DefaultResponseDto{
@@ -48,15 +48,15 @@ func (h *userControllerImpl) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(user)
+	_ = json.NewEncoder(w).Encode(role)
 }
 
-func (h *userControllerImpl) GetUsers(w http.ResponseWriter, r *http.Request) {
+func (h *roleControllerImpl) GetRoles(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	httpRequestCommon := common.NewHTTPRequestCommon(r)
 	pagingParameters, _ := httpRequestCommon.GetPaginateParameters()
 
-	data, err := h.userService.Paginate(
+	data, err := h.roleService.Paginate(
 		&pagingParameters.Filters,
 		&pagingParameters.OrderBy,
 		&pagingParameters.OrderDir,
@@ -75,11 +75,11 @@ func (h *userControllerImpl) GetUsers(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(data)
 }
 
-func (h *userControllerImpl) PostUser(w http.ResponseWriter, r *http.Request) {
+func (h *roleControllerImpl) PostRole(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	var userDto dto.UserDto
-	err := json.NewDecoder(r.Body).Decode(&userDto)
+	var roleDto dto.RoleDto
+	err := json.NewDecoder(r.Body).Decode(&roleDto)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(&dto.DefaultResponseDto{
@@ -88,8 +88,8 @@ func (h *userControllerImpl) PostUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := userDto.ToUser()
-	err = h.userService.Create(user)
+	role := roleDto.ToRole()
+	err = h.roleService.Create(role)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(&dto.DefaultResponseDto{
@@ -99,23 +99,23 @@ func (h *userControllerImpl) PostUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusCreated)
-	_ = json.NewEncoder(w).Encode(user)
+	_ = json.NewEncoder(w).Encode(role)
 }
 
-func (h *userControllerImpl) PutUser(w http.ResponseWriter, r *http.Request) {
+func (h *roleControllerImpl) PutRole(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	pathParams := mux.Vars(r)
 	if pathParams["uuid"] == "" {
 		response := make(map[string]interface{})
-		response["message"] = "id user is not defined"
+		response["message"] = "id role is not defined"
 		w.WriteHeader(http.StatusNotFound)
 		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	var userDto dto.UserDto
-	err := json.NewDecoder(r.Body).Decode(&userDto)
+	var roleDto dto.RoleDto
+	err := json.NewDecoder(r.Body).Decode(&roleDto)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(&dto.DefaultResponseDto{
@@ -124,9 +124,9 @@ func (h *userControllerImpl) PutUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := userDto.ToUser()
-	user.ID = pathParams["uuid"]
-	err = h.userService.Update(user)
+	role := roleDto.ToRole()
+	role.ID = pathParams["uuid"]
+	err = h.roleService.Update(role)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(&dto.DefaultResponseDto{
@@ -135,25 +135,25 @@ func (h *userControllerImpl) PutUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, _ = h.userService.FindById(user.ID)
+	role, _ = h.roleService.FindById(role.ID)
 
 	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(user)
+	_ = json.NewEncoder(w).Encode(role)
 }
 
-func (h *userControllerImpl) DeleteUser(w http.ResponseWriter, r *http.Request) {
+func (h *roleControllerImpl) DeleteRole(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	pathParams := mux.Vars(r)
 	if pathParams["uuid"] == "" {
 		response := make(map[string]interface{})
-		response["message"] = "id user is not defined"
+		response["message"] = "id role is not defined"
 		w.WriteHeader(http.StatusNotFound)
 		_ = json.NewEncoder(w).Encode(response)
 		return
 	}
 
-	err := h.userService.Delete(pathParams["uuid"])
+	err := h.roleService.Delete(pathParams["uuid"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(&dto.DefaultResponseDto{

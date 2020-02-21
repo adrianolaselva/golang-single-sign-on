@@ -1,6 +1,6 @@
-package dto
+package common
 
-type Pagination struct {
+type PaginationCommon struct {
 	Current      int      		`json:"current"`
 	TotalPages   int      		`json:"total_page"`
 	PerPage      int      		`json:"per_page"`

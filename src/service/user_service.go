@@ -2,20 +2,19 @@ package service
 
 import (
 	"oauth2/src/common"
-	"oauth2/src/dto"
 	"oauth2/src/models"
 	"oauth2/src/repository"
 )
 
 type UserService interface {
 	LoginByUserAndPassword(username string, password string) (*models.User, error)
-	Create(user models.User) (*models.User, error)
-	Update(user models.User) (*models.User, error)
+	Create(user *models.User) error
+	Update(user *models.User) error
 	Delete(uuid string) error
 	FindById(id string) (*models.User, error)
 	FindByUsername(username string) (*models.User, error)
 	FindByEmail(email string) (*models.User, error)
-	Paginate(filters *map[string]interface{}, orderBy *string, orderDir *string, limit *int, page *int)  (*dto.Pagination, error)
+	Paginate(filters *map[string]interface{}, orderBy *string, orderDir *string, limit *int, page *int)  (*common.PaginationCommon, error)
 }
 
 type userRepositoryImpl struct {
@@ -41,20 +40,20 @@ func (u *userRepositoryImpl) LoginByUserAndPassword(username string, password st
 }
 
 
-func (u *userRepositoryImpl) Create(user models.User) (*models.User, error) {
-	err := u.userRepository.Create(&user)
+func (u *userRepositoryImpl) Create(user *models.User) error {
+	err := u.userRepository.Create(user)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &user, nil
+	return nil
 }
 
-func (u *userRepositoryImpl) Update(user models.User) (*models.User, error) {
-	err := u.userRepository.Update(&user)
+func (u *userRepositoryImpl) Update(user *models.User) error {
+	err := u.userRepository.Update(user)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return &user, nil
+	return nil
 }
 
 func (u *userRepositoryImpl) Delete(uuid string) (error) {
@@ -89,7 +88,7 @@ func (u *userRepositoryImpl) FindByEmail(email string) (*models.User, error) {
 	return user, nil
 }
 
-func (u *userRepositoryImpl) Paginate(filters *map[string]interface{}, orderBy *string, orderDir *string, limit *int, page *int)  (*dto.Pagination, error) {
+func (u *userRepositoryImpl) Paginate(filters *map[string]interface{}, orderBy *string, orderDir *string, limit *int, page *int)  (*common.PaginationCommon, error) {
 	users, err := u.userRepository.Paginate(filters, orderBy, orderDir, limit, page)
 	if err != nil {
 		return nil, err

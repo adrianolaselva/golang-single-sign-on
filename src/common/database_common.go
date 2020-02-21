@@ -20,6 +20,8 @@ func (c *Database) Connect() *gorm.DB {
 		log.Printf("failed to connect database: %s", err)
 	}
 
+	db.LogMode(true)
+
 	return db
 }
 

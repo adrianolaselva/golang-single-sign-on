@@ -9,7 +9,7 @@ import (
 )
 
 type User struct {
-	ID          string 		`json:"id"gorm:"column:id;primary_key;type:varchar(36);not null;"`
+	ID          string 		`json:"id"gorm:"column:id;primary_key:true;type:varchar(36);not null;"`
 	Name     	string  	`json:"name"gorm:"column:name;type:varchar(120);not null;"`
 	LastName    string  	`json:"last_name"gorm:"column:last_name;type:varchar(120);not null;"`
 	Email       string  	`json:"email"gorm:"column:email;type:varchar(120);not null;unique_index"`
@@ -21,7 +21,7 @@ type User struct {
 	UpdatedAt   *time.Time	`json:"updated_at"gorm:"column:updated_at;type:datetime;not null;"`
 	ExpiresAt   *time.Time	`json:"expires_at"gorm:"column:expires_at;type:datetime;null;"`
 	DeletedAt   *time.Time	`json:"deleted_at,omit"gorm:"column:deleted_at;type:datetime;null;"sql:"index"`
-	Roles    	[]*Role 	`json:"roles,omitempty"gorm:"many2many:oauth_user_roles"`
+	Roles    	[]*Role 	`json:"roles,omitempty"gorm:"many2many:oauth_user_roles;association_jointable_foreignkey:role_id;"`
 }
 
 func (User) TableName() string {
@@ -69,3 +69,42 @@ func (u *User) MarshalJSON() ([]byte, error) {
 		DeletedAt: deletedAt,
 	})
 }
+
+//func (u *User) UnmarshalJSON(input []byte) error {
+//	strInput := string(input)
+//	log.Println(strInput)
+//	log.Println("ok")
+//
+//	user := make(map[string]interface{})
+//	if err := json.Unmarshal(input, &user); err != nil {
+//		log.Println(err)
+//	}
+//	u.Birthday, _ = time.Parse(common.YYYY_MM_DD, user["birthday"])
+//	log.Println(user)
+//
+//	//strInput := string(input)
+//	//strInput = strings.Trim(strInput, `"`)
+//	//newTime, err := time.Parse(common.YYYY_MM_DD, strInput)
+//	//if err != nil {
+//	//	return err
+//	//}
+//	//
+//	//b.Time = newTime
+//	return nil
+//}
+
+//type Birthday struct {
+//	time.Time
+//}
+//
+//func (b *Birthday) UnmarshalJSON(input []byte) error {
+//	strInput := string(input)
+//	strInput = strings.Trim(strInput, `"`)
+//	newTime, err := time.Parse(common.YYYY_MM_DD, strInput)
+//	if err != nil {
+//		return err
+//	}
+//
+//	b.Time = newTime
+//	return nil
+//}

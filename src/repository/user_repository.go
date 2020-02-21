@@ -3,7 +3,6 @@ package repository
 import (
 	"github.com/jinzhu/gorm"
 	"oauth2/src/common"
-	"oauth2/src/dto"
 	"oauth2/src/models"
 )
 
@@ -14,7 +13,8 @@ type UserRepository interface {
 	FindById(uuid string) (*models.User, error)
 	FindByUsername(username string) (*models.User, error)
 	FindByEmail(email string) (*models.User, error)
-	Paginate(filters *map[string]interface{}, orderBy *string, orderDir *string, limit *int, page *int)  (*dto.Pagination, error)
+	Paginate(filters *map[string]interface{}, orderBy *string, orderDir *string, limit *int, page *int)  (*common.PaginationCommon, error)
+	LoadRolesByUserId(uuid string) ([]*models.Role, error)
 }
 
 type userRepositoryImpl struct {
@@ -76,7 +76,7 @@ func (u *userRepositoryImpl) FindByEmail(email string) (*models.User, error) {
 	return &user, nil
 }
 
-func (u *userRepositoryImpl) Paginate(filters *map[string]interface{}, orderBy *string, orderDir *string, limit *int, page *int)  (*dto.Pagination, error) {
+func (u *userRepositoryImpl) Paginate(filters *map[string]interface{}, orderBy *string, orderDir *string, limit *int, page *int)  (*common.PaginationCommon, error) {
 	var databaseCommon common.Database
 
 	rows, total, pages, err := databaseCommon.InitializePaginate(
@@ -104,11 +104,20 @@ func (u *userRepositoryImpl) Paginate(filters *map[string]interface{}, orderBy *
 		users = append(users, &user)
 	}
 
-	return &dto.Pagination{
+	return &common.PaginationCommon{
 		Current:      *page,
 		PerPage:      *limit,
 		TotalPages:   pages,
 		TotalRecords: total,
 		Data:         users,
 	}, nil
+}
+
+func (u *userRepositoryImpl) LoadRolesByUserId(uuid string) ([]*models.Role, error) {
+	var user models.User
+	result := u.conn.Preload("Roles").Where("id = ?", uuid).First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return user.Roles, nil
 }
