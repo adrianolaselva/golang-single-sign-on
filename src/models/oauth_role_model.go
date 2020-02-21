@@ -6,8 +6,8 @@ import (
 )
 
 type Role struct {
-	ID      string 	`gorm:"column:id;type:varchar(36);primary_key;"`
-	Name 	string	`gorm:"column:name;type:varchar(100);unique_index;"`
+	ID      string 	`json:"id"gorm:"column:id;type:varchar(36);primary_key;"`
+	Name 	string	`json:"name"gorm:"column:name;type:varchar(100);unique_index;"`
 }
 
 func (Role) TableName() string {

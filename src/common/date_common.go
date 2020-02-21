@@ -3,8 +3,8 @@ package common
 import "time"
 
 const (
-	yyyyMmDd    = "2006-01-02"
-	yyyymmddHhmmss = "2006-01-02 15:04:05"
+	YYYY_MM_DD    		= "2006-01-02"
+	YYYY_MM_DD_HH_MM_SS = "2006-01-02 15:04:05"
 )
 
 type DateCommon interface {
@@ -23,19 +23,19 @@ func NewDateCommon() *dateCommonImpl  {
 }
 
 func (d *dateCommonImpl) ConvertFromDateStr(dateStr string) time.Time {
-	date, _ := time.Parse(yyyyMmDd, dateStr)
+	date, _ := time.Parse(YYYY_MM_DD, dateStr)
 	return date
 }
 
 func (d *dateCommonImpl) ConvertFromDateTimeStr(datetimeStr string) time.Time {
-	date, _ := time.Parse(yyyymmddHhmmss, datetimeStr)
+	date, _ := time.Parse(YYYY_MM_DD_HH_MM_SS, datetimeStr)
 	return date
 }
 
 func (d *dateCommonImpl) ConvertFromDate(date time.Time) string {
-	return date.Format(yyyyMmDd)
+	return date.Format(YYYY_MM_DD)
 }
 
 func (d *dateCommonImpl) ConvertFromDateTime(date time.Time) string {
-	return date.Format(yyyymmddHhmmss)
+	return date.Format(YYYY_MM_DD_HH_MM_SS)
 }

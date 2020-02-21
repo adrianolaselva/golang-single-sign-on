@@ -2,6 +2,7 @@ package service
 
 import (
 	"oauth2/src/common"
+	"oauth2/src/dto"
 	"oauth2/src/models"
 	"oauth2/src/repository"
 )
@@ -14,7 +15,7 @@ type UserService interface {
 	FindById(id string) (*models.User, error)
 	FindByUsername(username string) (*models.User, error)
 	FindByEmail(email string) (*models.User, error)
-	Paginate(filters map[string]interface{}, orderBy map[string]interface{}, limit int, offset int)  ([]*models.User, error)
+	Paginate(filters *map[string]interface{}, orderBy *string, orderDir *string, limit *int, page *int)  (*dto.Pagination, error)
 }
 
 type userRepositoryImpl struct {
@@ -88,6 +89,10 @@ func (u *userRepositoryImpl) FindByEmail(email string) (*models.User, error) {
 	return user, nil
 }
 
-func (u *userRepositoryImpl) Paginate(filters map[string]interface{}, orderBy map[string]interface{}, limit int, offset int)  ([]*models.User, error) {
-	return nil, nil
+func (u *userRepositoryImpl) Paginate(filters *map[string]interface{}, orderBy *string, orderDir *string, limit *int, page *int)  (*dto.Pagination, error) {
+	users, err := u.userRepository.Paginate(filters, orderBy, orderDir, limit, page)
+	if err != nil {
+		return nil, err
+	}
+	return users, nil
 }

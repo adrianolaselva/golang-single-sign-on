@@ -2,6 +2,7 @@ package repository
 
 import (
 	"github.com/jinzhu/gorm"
+	"oauth2/src/common"
 	"oauth2/src/dto"
 	"oauth2/src/models"
 )
@@ -13,7 +14,7 @@ type UserRepository interface {
 	FindById(uuid string) (*models.User, error)
 	FindByUsername(username string) (*models.User, error)
 	FindByEmail(email string) (*models.User, error)
-	Paginate(filters map[string]interface{}, orderBy map[string]interface{}, limit int, page int)  (*dto.Pagination, error)
+	Paginate(filters *map[string]interface{}, orderBy *string, orderDir *string, limit *int, page *int)  (*dto.Pagination, error)
 }
 
 type userRepositoryImpl struct {
@@ -75,30 +76,23 @@ func (u *userRepositoryImpl) FindByEmail(email string) (*models.User, error) {
 	return &user, nil
 }
 
-func (u *userRepositoryImpl) Paginate(filters map[string]interface{}, orderBy map[string]interface{}, limit int, page int)  (*dto.Pagination, error) {
+func (u *userRepositoryImpl) Paginate(filters *map[string]interface{}, orderBy *string, orderDir *string, limit *int, page *int)  (*dto.Pagination, error) {
+	var databaseCommon common.Database
 
-	if page == 0 {
-		page = 1
-	}
+	rows, total, pages, err := databaseCommon.InitializePaginate(
+		u.conn,
+		&[]*models.User{},
+		filters,
+		orderBy,
+		orderDir,
+		*limit,
+		*page,
+		"id",
+		"ASC")
 
-	result := u.conn.
-		Order(orderBy).
-		Where(filters).
-		Limit(limit).
-		Offset((page-1)*limit).
-		Find(&[]*models.User{})
-
-	if result.Error != nil {
-		return nil, result.Error
-	}
-
-	var total int
-	result.Count(&total)
-	rows, err := result.Rows()
 	if err != nil {
 		return nil, err
 	}
-	pages := (total+limit)/limit
 
 	var users []*models.User
 	for rows.Next() {
@@ -111,8 +105,8 @@ func (u *userRepositoryImpl) Paginate(filters map[string]interface{}, orderBy ma
 	}
 
 	return &dto.Pagination{
-		Current:      page,
-		PerPage:      limit,
+		Current:      *page,
+		PerPage:      *limit,
 		TotalPages:   pages,
 		TotalRecords: total,
 		Data:         users,

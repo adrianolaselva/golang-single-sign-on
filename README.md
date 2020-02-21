@@ -1,6 +1,15 @@
 
 # Single Sign-On Golang
 
+## Project structure
+
+- `/src` Source
+    - `/controllers` HTTP handler
+    - `/services` some sort of business logic/use case
+    - `/repositories` persistent storage/database interface
+    - `/models` relational structure mapping :) 
+    - `/dtos` data transfer objects
+    - `/helpers` common utilities
 
 ## Migrations 
 
