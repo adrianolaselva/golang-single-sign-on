@@ -325,6 +325,118 @@ paths:
           description: "not found."
         "500":
           description: "internal error."
+  '/v1/roles':
+    get:
+      tags:
+        - Roles
+      security:
+        - OAuth2: []
+      description: |
+        List roles
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      responses:
+        '200':
+          description: Dados processados com sucesso.
+          schema:
+            $ref: '#/definitions/rolePagination'
+        "400":
+          description: "failed."
+        "401":
+          description: "access denied."
+        "404":
+          description: "not found."
+        "500":
+          description: "internal error."
+    post:
+      tags:
+        - Roles
+      security:
+        - OAuth2: []
+      description: |
+        Create role
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      responses:
+        '200':
+          description: Dados processados com sucesso.
+          schema:
+            $ref: '#/definitions/role'
+        "400":
+          description: "failed."
+        "401":
+          description: "access denied."
+        "404":
+          description: "not found."
+        "500":
+          description: "internal error."
+    '/v1/roles/{uuid}':
+      get:
+        tags:
+          - Roles
+        security:
+          - OAuth2: []
+        description: |
+          Load role
+        consumes:
+          - "application/json"
+        produces:
+          - "application/json"
+        parameters:
+          - in: path
+            name: uuid
+            required: true
+            type: string
+            description: |
+              ID role.
+        responses:
+          '200':
+            description: Dados processados com sucesso.
+            schema:
+              $ref: '#/definitions/role'
+          "400":
+            description: "failed."
+          "401":
+            description: "access denied."
+          "404":
+            description: "not found."
+          "500":
+            description: "internal error."
+      put:
+        tags:
+          - Roles
+        security:
+          - OAuth2: []
+        description: |
+          Update role
+        consumes:
+          - "application/json"
+        produces:
+          - "application/json"
+        parameters:
+          - in: path
+            name: uuid
+            required: true
+            type: string
+            description: |
+              ID role.
+        responses:
+          '200':
+            description: Dados processados com sucesso.
+            schema:
+              $ref: '#/definitions/role'
+          "400":
+            description: "failed."
+          "401":
+            description: "access denied."
+          "404":
+            description: "not found."
+          "500":
+            description: "internal error."
 
 definitions:
   user:
@@ -378,6 +490,37 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/user'
+  role:
+    type: "object"
+    properties:
+      uuid:
+        type: string
+      name:
+        type: string
+  rolePagination:
+    type: "object"
+    properties:
+      current_page:
+        type: integer
+        example: 1
+      from:
+        type: integer
+      next_page_url:
+        type: string
+        example: "/roles?page=2"
+      path:
+        type: string
+      per_page:
+        type: integer
+      prev_page_url:
+        type: string
+        example: "/roles?page=1"
+      to:
+        type: integer
+      data:
+        type: array
+        items:
+          $ref: '#/definitions/role'
   token:
     type: "object"
     properties:
