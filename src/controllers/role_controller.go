@@ -153,7 +153,16 @@ func (h *roleControllerImpl) DeleteRole(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err := h.roleService.Delete(pathParams["uuid"])
+	role, err := h.roleService.FindById(pathParams["uuid"])
+	if role == nil {
+		w.WriteHeader(http.StatusNotFound)
+		_ = json.NewEncoder(w).Encode(&dto.DefaultResponseDto{
+			Message: "role not found",
+		})
+		return
+	}
+
+	err = h.roleService.Delete(pathParams["uuid"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(&dto.DefaultResponseDto{

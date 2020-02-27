@@ -42,7 +42,7 @@ func (u *userRepositoryImpl) Update(user *models.User) error {
 }
 
 func (u *userRepositoryImpl) Delete(uuid string) error {
-	result := u.conn.Delete(&models.User{}).Where("id = ?", uuid)
+	result := u.conn.Where("id = ?", uuid).Delete(&models.User{})
 	if result.Error != nil {
 		return result.Error
 	}
@@ -51,7 +51,7 @@ func (u *userRepositoryImpl) Delete(uuid string) error {
 
 func (u *userRepositoryImpl) FindById(uuid string) (*models.User, error) {
 	var user models.User
-	result := u.conn.Preload("Roles").Where("id = ?", uuid).First(&user)
+	result := u.conn.Where("id = ?", uuid).Preload("Roles").First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -60,7 +60,7 @@ func (u *userRepositoryImpl) FindById(uuid string) (*models.User, error) {
 
 func (u *userRepositoryImpl) FindByUsername(username string) (*models.User, error) {
 	var user models.User
-	result := u.conn.Preload("Roles").Where("username = ?", username).First(&user)
+	result := u.conn.Where("username = ?", username).Preload("Roles").First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -69,7 +69,7 @@ func (u *userRepositoryImpl) FindByUsername(username string) (*models.User, erro
 
 func (u *userRepositoryImpl) FindByEmail(email string) (*models.User, error) {
 	var user models.User
-	result := u.conn.Preload("Roles").Where("email = ?", email).First(&user)
+	result := u.conn.Where("email = ?", email).Preload("Roles").First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}

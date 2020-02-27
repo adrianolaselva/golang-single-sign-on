@@ -40,7 +40,7 @@ func (u *roleRepositoryImpl) Update(role *models.Role) error {
 }
 
 func (u *roleRepositoryImpl) Delete(uuid string) error {
-	result := u.conn.Delete(&models.Role{}).Where("id = ?", uuid)
+	result := u.conn.Where("id = ?", uuid).Delete(&models.Role{})
 	if result.Error != nil {
 		return result.Error
 	}

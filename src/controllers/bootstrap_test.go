@@ -20,17 +20,23 @@ var dateCommon common.DateCommon
 var randomVal string
 // repositories
 var userRepository repository.UserRepository
+var roleRepository repository.RoleRepository
 // services
 var userService service.UserService
+var roleService service.RoleService
 //controllers
 var userController controllers.UserController
 var healthController controllers.HealthController
+var roleController controllers.RoleController
 
 func TestMain(m *testing.M) {
 	connection = NewConnection()
 	userRepository = repository.NewUserRepository(connection)
+	roleRepository = repository.NewRoleRepository(connection)
 	userService = service.NewUserService(userRepository)
+	roleService = service.NewRoleService(roleRepository)
 	userController = controllers.NewUserController(userService)
+	roleController = controllers.NewRoleController(roleService)
 	randomVal = time.Now().Format("20060102150405")
 	hash = common.NewHash()
 	dateCommon = common.NewDateCommon()

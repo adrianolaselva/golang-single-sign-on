@@ -19,13 +19,18 @@ type UserDto struct {
 }
 
 func (u *UserDto) ToUser() *models.User {
+	var birthday time.Time
+	if u.Birthday != nil {
+		birthday = u.Birthday.Time
+	}
+
 	return &models.User{
 		Name:      u.Name,
 		LastName:  u.LastName,
 		Email:     u.Email,
 		Username:  u.Username,
 		Password:  u.Password,
-		Birthday:  &u.Birthday.Time,
+		Birthday:  &birthday,
 		Activated: u.Activated,
 		Roles: 	   u.Roles,
 	}

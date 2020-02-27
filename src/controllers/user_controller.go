@@ -153,7 +153,15 @@ func (h *userControllerImpl) DeleteUser(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err := h.userService.Delete(pathParams["uuid"])
+	user, err := h.userService.FindById(pathParams["uuid"])
+	if user == nil {
+		w.WriteHeader(http.StatusNotFound)
+		_ = json.NewEncoder(w).Encode(&dto.DefaultResponseDto{
+			"user not found",
+		})
+	}
+
+	err = h.userService.Delete(pathParams["uuid"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		_ = json.NewEncoder(w).Encode(&dto.DefaultResponseDto{
