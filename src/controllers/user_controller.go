@@ -88,7 +88,15 @@ func (h *userControllerImpl) PostUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := userDto.ToUser()
+	user, err := userDto.ToUser()
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(&dto.DefaultResponseDto{
+			Message: err.Error(),
+		})
+		return
+	}
+
 	err = h.userService.Create(user)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -124,7 +132,15 @@ func (h *userControllerImpl) PutUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := userDto.ToUser()
+	user, err := userDto.ToUser()
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(&dto.DefaultResponseDto{
+			Message: err.Error(),
+		})
+		return
+	}
+
 	user.ID = pathParams["uuid"]
 	err = h.userService.Update(user)
 	if err != nil {

@@ -1,6 +1,7 @@
 package dto
 
 import (
+	"gopkg.in/go-playground/validator.v9"
 	"oauth2/src/common"
 	"oauth2/src/models"
 	"strings"
@@ -8,17 +9,23 @@ import (
 )
 
 type UserDto struct {
-	Name     	string  		`json:"name"`
-	LastName    string  		`json:"last_name"`
-	Email       string  		`json:"email"`
-	Username    string  		`json:"username"`
-	Password    *string  		`json:"password,omitempty"`
-	Birthday    *Birthday  		`json:"birthday"`
-	Activated 	bool    		`json:"activated"`
+	Name     	string  		`json:"name" validate:"required,min=2,max=100"`
+	LastName    string  		`json:"last_name" validate:"required,min=2,max=100"`
+	Email       string  		`json:"email" validate:"required,min=2,max=100"`
+	Username    string  		`json:"username" validate:"required,min=2,max=20"`
+	Password    *string  		`json:"password,omitempty" validate:"required,min=2,max=255"`
+	Birthday    *Birthday  		`json:"birthday" validate:"required"`
+	Activated 	bool    		`json:"activated" validate:"required"`
 	Roles    	[]*models.Role 	`json:"roles,omitempty"`
 }
 
-func (u *UserDto) ToUser() *models.User {
+func (u *UserDto) ToUser() (*models.User, error) {
+	v := validator.New()
+	err := v.Struct(u)
+	if err != nil {
+		return nil, err
+	}
+
 	var birthday time.Time
 	if u.Birthday != nil {
 		birthday = u.Birthday.Time
@@ -33,7 +40,7 @@ func (u *UserDto) ToUser() *models.User {
 		Birthday:  &birthday,
 		Activated: u.Activated,
 		Roles: 	   u.Roles,
-	}
+	}, nil
 }
 
 type Birthday struct {

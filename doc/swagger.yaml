@@ -2,9 +2,8 @@ swagger: "2.0"
 info:
   version: "v1"
   title: "Single Sign-on Golang"
-host: sign.aglaia.com
-schemes:
-  - https
+#schemes:
+#  - https
 securityDefinitions:
   basicAuth:
     type: basic
@@ -249,6 +248,13 @@ paths:
         - "application/json"
       produces:
         - "application/json"
+      parameters:
+        - name: body
+          in: body
+          description: Payload
+          required: true
+          schema:
+            $ref: '#/definitions/user'
       responses:
         '200':
           description: Dados processados com sucesso.
@@ -312,6 +318,12 @@ paths:
           type: string
           description: |
             ID user.
+        - name: body
+          in: body
+          description: Payload
+          required: true
+          schema:
+            $ref: '#/definitions/user'
       responses:
         '200':
           description: Dados processados com sucesso.
@@ -361,6 +373,13 @@ paths:
         - "application/json"
       produces:
         - "application/json"
+      parameters:
+        - name: body
+          in: body
+          description: Payload
+          required: true
+          schema:
+            $ref: '#/definitions/role'
       responses:
         '200':
           description: Dados processados com sucesso.
@@ -424,6 +443,12 @@ paths:
           type: string
           description: |
             ID role.
+        - name: body
+          in: body
+          description: Payload
+          required: true
+          schema:
+            $ref: '#/definitions/role'
       responses:
         '200':
           description: Dados processados com sucesso.
@@ -437,7 +462,6 @@ paths:
           description: "not found."
         "500":
           description: "internal error."
-
 definitions:
   user:
     type: "object"

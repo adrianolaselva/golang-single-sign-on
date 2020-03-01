@@ -254,3 +254,62 @@ func TestDeleteRoleNotFound(t *testing.T) {
 		t.Errorf("failed to delete resource, return code: %v, payload: %v", rr.Code, rr.Body)
 	}
 }
+
+func TestPostRoleBadRequest(t *testing.T) {
+	data := make(map[string]interface{})
+
+	payload, err := json.Marshal(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, resourceRoles, bytes.NewBuffer(payload))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rr := httptest.NewRecorder()
+	var handler = http.Handler(http.HandlerFunc(roleController.PostRole))
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusBadRequest {
+		t.Errorf("failed to create resource, return code: %v, payload: %v", rr.Code, rr.Body)
+	}
+}
+
+func TestPutRoleBadRequest(t *testing.T) {
+	var orderBy, orderDir, limit, page, filters = "name", "desc", 1, 1, make(map[string]interface{})
+	paginateData, err := roleService.Paginate(&filters, &orderBy, &orderDir, &limit, &page)
+	if paginateData == nil {
+		t.Fatal("there are no records")
+	}
+
+	firstRow := paginateData.Data.([]*models.Role)[0]
+	if firstRow == nil {
+		t.Fatal("failed to return first row for load role")
+	}
+
+	data := make(map[string]interface{})
+
+	payload, err := json.Marshal(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req, err := http.NewRequest(http.MethodPut, resourceRoles, bytes.NewBuffer(payload))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	req = mux.SetURLVars(req, map[string]string{
+		"uuid": firstRow.ID,
+	})
+
+	rr := httptest.NewRecorder()
+	var handler = http.Handler(http.HandlerFunc(roleController.PutRole))
+	handler.ServeHTTP(rr, req)
+
+	if status := rr.Code; status != http.StatusBadRequest {
+		t.Errorf("failed to update resource, return code: %v, payload: %v", rr.Code, rr.Body)
+	}
+}

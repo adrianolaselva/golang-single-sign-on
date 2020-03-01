@@ -88,7 +88,15 @@ func (h *roleControllerImpl) PostRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role := roleDto.ToRole()
+	role, err := roleDto.ToRole()
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(&dto.DefaultResponseDto{
+			Message: err.Error(),
+		})
+		return
+	}
+
 	err = h.roleService.Create(role)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -124,7 +132,15 @@ func (h *roleControllerImpl) PutRole(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	role := roleDto.ToRole()
+	role, err := roleDto.ToRole()
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(&dto.DefaultResponseDto{
+			Message: err.Error(),
+		})
+		return
+	}
+
 	role.ID = pathParams["uuid"]
 	err = h.roleService.Update(role)
 	if err != nil {

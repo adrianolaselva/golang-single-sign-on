@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"log"
 	"net/http"
 	"oauth2/src/common"
@@ -15,6 +16,8 @@ import (
 	"oauth2/src/service"
 	"os"
 	"time"
+
+	//httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type Bootstrap struct {
@@ -48,6 +51,7 @@ func (a * Bootstrap) Run() {
 
 	// Initialize controllers
 	healthController := controllers.NewHealthController()
+	swaggerController := controllers.NewSwaggerController()
 	oauthController := controllers.NewOAuthController()
 	userController := controllers.NewUserController(userService)
 	roleController := controllers.NewRoleController(roleService)
@@ -57,9 +61,15 @@ func (a * Bootstrap) Run() {
 
 	routeCommon := common.Route{}
 	routeCommon.Initialize(router, routes.NewHealthRoutes(healthController).Routes())
+	routeCommon.Initialize(router, routes.NewSwaggerRoutes(swaggerController).Routes())
 	routeCommon.Initialize(router, routes.NewOAuthRoutes(oauthController, authenticationMiddleware).Routes())
 	routeCommon.Initialize(router, routes.NewUserRoutes(userController, authenticationMiddleware).Routes())
 	routeCommon.Initialize(router, routes.NewRoleRoutes(roleController, authenticationMiddleware).Routes())
+
+	swaggerHandler := httpSwagger.Handler(func(config *httpSwagger.Config) {
+		config.URL = "/swagger/docs.json"
+	})
+	router.PathPrefix("/").Handler(swaggerHandler)
 
 	headers := handlers.AllowedHeaders([]string{"Content-Type", "X-Request", "Location", "Entity", "Accept"})
 	methods := handlers.AllowedMethods([]string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete})
@@ -72,4 +82,8 @@ func (a * Bootstrap) Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func swaggerFile(w http.ResponseWriter, r *http.Request) {
+
 }

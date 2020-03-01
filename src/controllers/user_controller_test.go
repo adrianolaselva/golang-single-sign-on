@@ -373,8 +373,18 @@ func TestPostUserBadRequest(t *testing.T) {
 }
 
 func TestPutUserBadRequest(t *testing.T) {
+	var orderBy, orderDir, limit, page, filters = "name", "desc", 1, 1, make(map[string]interface{})
+	paginateData, err := userService.Paginate(&filters, &orderBy, &orderDir, &limit, &page)
+	if paginateData == nil {
+		t.Fatal("there are no records")
+	}
+
+	firstRow := paginateData.Data.([]*models.User)[0]
+	if firstRow == nil {
+		t.Fatal("failed to return first row for load role")
+	}
+
 	data := make(map[string]interface{})
-	data["name"] = fmt.Sprintf("test_%s", randomVal)
 
 	payload, err := json.Marshal(data)
 	if err != nil {
@@ -387,20 +397,14 @@ func TestPutUserBadRequest(t *testing.T) {
 	}
 
 	req = mux.SetURLVars(req, map[string]string{
-		"uuid": "bad",
+		"uuid": firstRow.ID,
 	})
 
 	rr := httptest.NewRecorder()
 	var handler = http.Handler(http.HandlerFunc(userController.PutUser))
 	handler.ServeHTTP(rr, req)
 
-	if status := rr.Code; status != http.StatusOK {
+	if status := rr.Code; status != http.StatusBadRequest {
 		t.Errorf("failed to update resource, return code: %v, payload: %v", rr.Code, rr.Body)
-	}
-
-	var userCreated = make(map[string]interface{})
-	err = json.NewDecoder(rr.Body).Decode(&userCreated)
-	if err != nil {
-		t.Fatal(err)
 	}
 }
