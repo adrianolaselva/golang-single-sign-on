@@ -38,7 +38,7 @@ func (o *oAuthImpl) Routes() []*common.Route {
 			http.MethodPost,
 			"/oauth2/token",
 			o.authenticationMiddleware.
-				ValidateClientIdAndSecret(http.HandlerFunc(o.oAuthController.PostToken)),
+				Filter(http.HandlerFunc(o.oAuthController.PostToken)),
 		},
 		{
 			http.MethodGet,

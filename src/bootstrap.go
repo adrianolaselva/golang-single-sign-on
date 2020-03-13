@@ -2,6 +2,7 @@ package src
 
 import (
 	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
@@ -14,6 +15,7 @@ import (
 	"oauth2/src/repository"
 	"oauth2/src/routes"
 	"oauth2/src/service"
+	"oauth2/src/service/oauth"
 	"os"
 	"time"
 
@@ -38,21 +40,36 @@ func (a * Bootstrap) Run() {
 	defer conn.Close()
 
 	appPort := os.Getenv("SSO_PORT")
+	authSecret := "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABA"
 
 	router := mux.NewRouter().StrictSlash(true)
 
 	// Initialize repositories
 	userRepository := repository.NewUserRepository(&conn)
 	roleRepository := repository.NewRoleRepository(&conn)
+	clientRepository := repository.NewClientRepository(&conn)
+	authCodeRepository := repository.NewAuthCodeRepository(&conn)
+	refreshTokenRepository := repository.NewRefreshTokenRepository(&conn)
+	accessTokenRepository := repository.NewAccessTokenRepository(&conn)
 
 	// Inicialize services
 	userService := service.NewUserService(userRepository)
 	roleService := service.NewRoleService(roleRepository)
 
+	// OAuth2 implementation
+	authFlow := oauth.NewAuthFlow(
+			jwt.SigningMethodHS256,
+			authSecret,
+			clientRepository,
+			authCodeRepository,
+			refreshTokenRepository,
+			accessTokenRepository,
+		)
+
 	// Initialize controllers
 	healthController := controllers.NewHealthController()
 	swaggerController := controllers.NewSwaggerController()
-	oauthController := controllers.NewOAuthController()
+	oauthController := controllers.NewOAuthController(authFlow)
 	userController := controllers.NewUserController(userService)
 	roleController := controllers.NewRoleController(roleService)
 

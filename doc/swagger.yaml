@@ -135,6 +135,7 @@ paths:
           type: string
           enum:
             - authorization_code
+            - password
             - refresh_token
             - client_credentials
           description: |
@@ -146,6 +147,14 @@ paths:
           type: string
           description: |
             Client ID.
+            Must be a preregistered client in the user pool. The client must be enabled for Amazon Cognito federation.
+            Required if the client is public and does not have a secret.
+        - in: formData
+          name: client_secret
+          required: false
+          type: string
+          description: |
+            Client Secret.
             Must be a preregistered client in the user pool. The client must be enabled for Amazon Cognito federation.
             Required if the client is public and does not have a secret.
         - in: formData
