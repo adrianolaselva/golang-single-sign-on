@@ -61,7 +61,11 @@ func (r refreshTokenRepository) FindByAccessToken(accessToken string) (*models.R
 
 func (r refreshTokenRepository) FindByRefreshToken(token string) (*models.RefreshToken, error) {
 	refreshToken := models.RefreshToken{}
-	result := r.conn.Where("refresh_token = ?", token).Find(&refreshToken)
+	result := r.conn.Where("refresh_token = ?", token).
+		Preload("AccessToken").
+		Preload("AccessToken.User").
+		Preload("AccessToken.Client").
+		Find(&refreshToken)
 	if result.Error != nil {
 		return nil, result.Error
 	}

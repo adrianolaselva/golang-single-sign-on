@@ -44,6 +44,7 @@ curl -XPOST 'https://api.aglaia.io/oauth/token' \
 }
 ```
 
+
 #### grant_type `client_credentials`
 
 ```sh

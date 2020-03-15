@@ -31,6 +31,7 @@ type AuthFlow interface {
 	GetRefreshToken() (*dto.AccessTokenResponseDTO, error)
 	GetAuthorizationCode() (*string, error)
 	verifyCredentials() error
+	verifyClientAndSecret() error
 	verifyClient() error
 	validateScopes() error
 	getAccessTokenBase() (*models.AccessToken, error)
@@ -39,7 +40,8 @@ type AuthFlow interface {
 type authFlow struct {
 	token *jwt.Token
 	accessTokenRequest *dto.AccessTokenRequestDTO
-	expiresAt int64
+	accessTokenExpiresAt int64
+	refreshTokenExpiresAt int64
 	signature string
 	hash common.Hash
 	user *models.User
@@ -107,6 +109,20 @@ func (o *authFlow) SetRequest(r *http.Request) error {
 		}
 	}
 
+	if len(auth) == 2 || auth[0] == "Bearer" {
+		claims := jwt.MapClaims{}
+		token, err := jwt.ParseWithClaims(auth[1], claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(o.signature), nil
+		})
+		if err == nil {
+			if err = claims.Valid(); err != nil {
+				return errors.Errorf(err.Error())
+			}
+
+			o.token = token
+		}
+	}
+
 	accessTokenRequest := dto.AccessTokenRequestDTO{}
 	if err := schema.NewDecoder().Decode(&accessTokenRequest, values); err != nil {
 		return err
@@ -125,7 +141,8 @@ func (o *authFlow) SetRequest(r *http.Request) error {
 
 // SetExpiresAt: set time expires
 func (o *authFlow) SetExpiresAt(minutes int) {
-	o.expiresAt = time.Now().Add(time.Minute * time.Duration(minutes)).Unix()
+	o.accessTokenExpiresAt = time.Now().Add(time.Minute * time.Duration(minutes)).Unix()
+	o.refreshTokenExpiresAt = time.Now().Add(time.Minute * time.Duration(minutes * 120)).Unix()
 }
 
 // validateScopes: verify scopes
@@ -216,11 +233,11 @@ func (o *authFlow) verifyClientAndSecret() error {
 func (o *authFlow) getAccessTokenBase() (*models.AccessToken, error) {
 	o.token.Claims = &AuthTokenClaim{
 		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: o.expiresAt,
+			ExpiresAt: o.accessTokenExpiresAt,
 		},
 		Profile: *o.user,
 		ClientID: o.client.ID,
-		Scope: strings.Split(o.client.Scopes, " "),
+		Scope: strings.Split(o.accessTokenRequest.Scope, " "),
 	}
 
 	token, err := o.token.SignedString([]byte(o.signature))
@@ -228,7 +245,7 @@ func (o *authFlow) getAccessTokenBase() (*models.AccessToken, error) {
 		return nil, errors.Errorf("failed to generate token %s", err.Error())
 	}
 
-	expiresAt := time.Unix(o.expiresAt, 0)
+	expiresAt := time.Unix(o.accessTokenExpiresAt, 0)
 	accessToken := models.AccessToken{
 		User: o.user,
 		Client: o.client,
@@ -239,6 +256,39 @@ func (o *authFlow) getAccessTokenBase() (*models.AccessToken, error) {
 	}
 
 	return &accessToken, nil
+}
+
+// getRefreshTokenBase: generate refresh_token
+func (o *authFlow) getRefreshTokenBase(accessToken *models.AccessToken, accessTokenResponseDTO *dto.AccessTokenResponseDTO) error {
+	refreshTokenAux := o.token
+
+	refreshTokenAux.Claims = &AuthTokenClaim{
+		StandardClaims: &jwt.StandardClaims{
+			ExpiresAt: o.refreshTokenExpiresAt,
+		},
+	}
+
+	token, err := refreshTokenAux.SignedString([]byte(o.signature))
+	if err != nil {
+		return errors.Errorf("failed to generate refresh_token %s", err.Error())
+	}
+
+	expiresAt := time.Unix(o.refreshTokenExpiresAt, 0)
+	refreshToken := models.RefreshToken{
+		RefreshToken: token,
+		Revoked:      false,
+		ExpiresAt:    &expiresAt,
+		AccessToken:  accessToken,
+	}
+
+	err = o.refreshTokenRepository.Create(&refreshToken)
+	if err != nil {
+		return errors.Errorf("failed to generate refresh_token")
+	}
+
+	accessTokenResponseDTO.RefreshToken = &refreshToken.RefreshToken
+
+	return nil
 }
 
 // GetAccessToken: get access_token for grant_type
@@ -289,7 +339,7 @@ func (o *authFlow) grantTypePassword() (*dto.AccessTokenResponseDTO, error) {
 
 	return &dto.AccessTokenResponseDTO{
 		TokenType:   "Bearer",
-		ExpiresIn:   o.expiresAt,
+		ExpiresIn:   o.accessTokenExpiresAt,
 		AccessToken: accessToken.AccessToken,
 	}, nil
 }
@@ -317,11 +367,65 @@ func (o *authFlow) grantTypeClientCredentials() (*dto.AccessTokenResponseDTO, er
 		return nil, errors.Errorf("failed to generate access_token")
 	}
 
-	return &dto.AccessTokenResponseDTO{
+	accessTokenResponseDTO := dto.AccessTokenResponseDTO{
 		TokenType:   "Bearer",
-		ExpiresIn:   o.expiresAt,
+		ExpiresIn:   o.accessTokenExpiresAt,
 		AccessToken: accessToken.AccessToken,
-	}, nil
+	}
+
+	err = o.getRefreshTokenBase(accessToken, &accessTokenResponseDTO)
+	if err != nil {
+		return nil, err
+	}
+
+	return &accessTokenResponseDTO, nil
+}
+
+func (o *authFlow) grantTypeRefreshToken() (*dto.AccessTokenResponseDTO, error) {
+
+	refreshToken, err := o.refreshTokenRepository.FindByRefreshToken(o.accessTokenRequest.RefreshToken)
+	if err != nil {
+		return nil, errors.Errorf("refresh_token not found")
+	}
+
+	if refreshToken.Revoked {
+		return nil, errors.Errorf("refresh_token has revoked")
+	}
+
+	o.user = refreshToken.AccessToken.User
+	o.client = refreshToken.AccessToken.Client
+
+	refreshToken.Revoked = true
+	refreshToken.AccessToken.Revoked = true
+	o.accessTokenRequest.Scope = refreshToken.AccessToken.Scopes
+
+	err = o.refreshTokenRepository.Update(refreshToken)
+	if err != nil {
+		return nil, errors.Errorf("failed to revoke token and refresh_token")
+	}
+
+	accessToken, err := o.getAccessTokenBase()
+	if err != nil {
+		return nil, err
+	}
+
+	err = o.accessTokenRepository.Create(accessToken)
+	if err != nil {
+		return nil, errors.Errorf("failed to generate access_token")
+	}
+
+	accessTokenResponseDTO := dto.AccessTokenResponseDTO{
+		TokenType:   "Bearer",
+		ExpiresIn:   o.accessTokenExpiresAt,
+		AccessToken: accessToken.AccessToken,
+	}
+
+	err = o.getRefreshTokenBase(accessToken, &accessTokenResponseDTO)
+	if err != nil {
+		return nil, err
+	}
+
+	return &accessTokenResponseDTO, nil
 }
 
 
@@ -344,7 +448,7 @@ func (o *authFlow) GetAuthorizationCode() (*string, error) {
 func (o *authFlow) grantTypeAuthorizationCode() (*dto.AccessTokenResponseDTO, error) {
 	o.token.Claims = &AuthTokenClaim{
 		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: o.expiresAt,
+			ExpiresAt: o.accessTokenExpiresAt,
 		},
 	}
 
@@ -355,27 +459,7 @@ func (o *authFlow) grantTypeAuthorizationCode() (*dto.AccessTokenResponseDTO, er
 
 	return &dto.AccessTokenResponseDTO{
 		TokenType:   "Bearer",
-		ExpiresIn:   o.expiresAt,
-		AccessToken: accessToken,
-	}, nil
-}
-
-func (o *authFlow) grantTypeRefreshToken() (*dto.AccessTokenResponseDTO, error) {
-	o.token.Claims = &AuthTokenClaim{
-		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: o.expiresAt,
-		},
-	}
-
-	accessToken, err := o.token.SignedString([]byte(o.signature))
-	if err != nil {
-		return nil, errors.Errorf("failed to generate token %s", err.Error())
-	}
-
-	return &dto.AccessTokenResponseDTO{
-		TokenType:   "Bearer",
-		ExpiresIn:   o.expiresAt,
-		RefreshToken: &accessToken,
+		ExpiresIn:   o.accessTokenExpiresAt,
 		AccessToken: accessToken,
 	}, nil
 }
@@ -383,7 +467,7 @@ func (o *authFlow) grantTypeRefreshToken() (*dto.AccessTokenResponseDTO, error) 
 func (o *authFlow) grantTypeImplicit() (*dto.AccessTokenResponseDTO, error) {
 	o.token.Claims = &AuthTokenClaim{
 		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: o.expiresAt,
+			ExpiresAt: o.accessTokenExpiresAt,
 		},
 	}
 
@@ -394,7 +478,7 @@ func (o *authFlow) grantTypeImplicit() (*dto.AccessTokenResponseDTO, error) {
 
 	return &dto.AccessTokenResponseDTO{
 		TokenType:   "Bearer",
-		ExpiresIn:   o.expiresAt,
+		ExpiresIn:   o.accessTokenExpiresAt,
 		RefreshToken: &accessToken,
 		AccessToken: accessToken,
 	}, nil

@@ -5,22 +5,26 @@ info:
 #schemes:
 #  - https
 securityDefinitions:
-  BasicAuth:
+  Basic:
     type: basic
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
   OAuth2:
     type: oauth2
     flow: password
     tokenUrl: https://app.aglaia.com/oauth2/token
-    scopes:
-      users:write: write users
-      users:read: read users
-      users:edit: edit users
-      users:delete: delete users
-      clients:write: write users
-      clients:read: read users
-      clients:edit: edit users
-      clients:delete: delete users
-      tokens:revoke: revoke token
+#    scopes:
+#      users:write: write users
+#      users:read: read users
+#      users:edit: edit users
+#      users:delete: delete users
+#      clients:write: write users
+#      clients:read: read users
+#      clients:edit: edit users
+#      clients:delete: delete users
+#      tokens:revoke: revoke token
 paths:
   '/oauth2/authorize':
     get:
@@ -123,7 +127,8 @@ paths:
       tags:
         - OAuth2
       security:
-        - BasicAuth: []
+        - Basic: []
+        - Bearer: []
       description: |
         Create configuration
       consumes:
@@ -145,7 +150,7 @@ paths:
             Must be authorization_code or refresh_token or client_credentials.
         - in: formData
           name: client_id
-          required: true
+          required: false
           type: string
           description: |
             Client ID.
