@@ -28,13 +28,16 @@ type AuthFlow interface {
 	SetRequest(r *http.Request) error
 	SetExpiresAt(minutes int)
 	GetAccessToken() (*dto.AccessTokenResponseDTO, error)
-	GetRefreshToken() (*dto.AccessTokenResponseDTO, error)
 	GetAuthorizationCode() (*string, error)
 	verifyCredentials() error
 	verifyClientAndSecret() error
 	verifyClient() error
 	validateScopes() error
 	getAccessTokenBase() (*models.AccessToken, error)
+	getRefreshTokenBase(accessToken *models.AccessToken, accessTokenResponseDTO *dto.AccessTokenResponseDTO) error
+	grantTypePassword() (*dto.AccessTokenResponseDTO, error)
+	grantTypeClientCredentials() (*dto.AccessTokenResponseDTO, error)
+	grantTypeRefreshToken() (*dto.AccessTokenResponseDTO, error)
 }
 
 type authFlow struct {
@@ -373,14 +376,10 @@ func (o *authFlow) grantTypeClientCredentials() (*dto.AccessTokenResponseDTO, er
 		AccessToken: accessToken.AccessToken,
 	}
 
-	err = o.getRefreshTokenBase(accessToken, &accessTokenResponseDTO)
-	if err != nil {
-		return nil, err
-	}
-
 	return &accessTokenResponseDTO, nil
 }
 
+// grantTypeRefreshToken: flow refresh_token
 func (o *authFlow) grantTypeRefreshToken() (*dto.AccessTokenResponseDTO, error) {
 
 	refreshToken, err := o.refreshTokenRepository.FindByRefreshToken(o.accessTokenRequest.RefreshToken)
@@ -430,16 +429,6 @@ func (o *authFlow) grantTypeRefreshToken() (*dto.AccessTokenResponseDTO, error) 
 
 
 
-
-
-
-
-
-
-
-func (o *authFlow) GetRefreshToken() (*dto.AccessTokenResponseDTO, error) {
-	return nil, nil
-}
 
 func (o *authFlow) GetAuthorizationCode() (*string, error) {
 	return nil, nil
