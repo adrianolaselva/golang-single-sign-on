@@ -22,6 +22,7 @@ type User struct {
 	ExpiresAt   *time.Time	`json:"expires_at"gorm:"column:expires_at;type:datetime;null;"`
 	DeletedAt   *time.Time	`json:"deleted_at,omit"gorm:"column:deleted_at;type:datetime;null;"sql:"index"`
 	Roles    	[]*Role 	`json:"roles,omitempty"gorm:"many2many:oauth_user_roles;association_jointable_foreignkey:role_id;"`
+	Clients    	[]*Client 	`json:"clients,omitempty"gorm:"foreignkey:user_id;association_foreignkey:id"`
 }
 
 func (User) TableName() string {

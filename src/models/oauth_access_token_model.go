@@ -12,8 +12,10 @@ type AccessToken struct {
 	Scopes			string		`gorm:"column:scopes;type:varchar(1024);not null;"`
 	Revoked			bool    	`gorm:"column:revoked;not null;type:boolean;default:false"`
 	ExpiresAt 		*time.Time	`gorm:"column:expires_at;not null;"`
-	User 			*User		`gorm:"foreignkey:user_id"`
-	Client 			*Client		`gorm:"foreignkey:client_id"`
+	UserID 			string		`gorm:"column:user_id;not null;"`
+	User 			*User
+	ClientID 		string		`gorm:"column:client_id;not null;"`
+	Client 			*Client
 }
 
 func (AccessToken) TableName() string {

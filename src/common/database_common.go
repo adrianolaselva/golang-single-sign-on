@@ -21,6 +21,9 @@ func (c *Database) Connect() *gorm.DB {
 	}
 
 	db.LogMode(true)
+	//db.DB().SetMaxIdleConns(10)
+	//db.DB().SetMaxOpenConns(100)
+	//db.DB().SetConnMaxLifetime(time.Hour)
 
 	return db
 }

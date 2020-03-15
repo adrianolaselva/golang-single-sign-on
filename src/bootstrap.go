@@ -40,7 +40,7 @@ func (a * Bootstrap) Run() {
 	defer conn.Close()
 
 	appPort := os.Getenv("SSO_PORT")
-	authSecret := "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABA"
+	signature := os.Getenv("SSO_JWT_SIGNATURE")
 
 	router := mux.NewRouter().StrictSlash(true)
 
@@ -59,7 +59,8 @@ func (a * Bootstrap) Run() {
 	// OAuth2 implementation
 	authFlow := oauth.NewAuthFlow(
 			jwt.SigningMethodHS256,
-			authSecret,
+			signature,
+			userRepository,
 			clientRepository,
 			authCodeRepository,
 			refreshTokenRepository,
@@ -99,8 +100,4 @@ func (a * Bootstrap) Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func swaggerFile(w http.ResponseWriter, r *http.Request) {
-
 }
