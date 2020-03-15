@@ -113,6 +113,13 @@ func (o *authFlow) SetRequest(r *http.Request) error {
 	}
 	o.accessTokenRequest = &accessTokenRequest
 
+	if accessTokenRequest.GrantType == enums.GrantTypeClientCredentials.String() {
+		if o.accessTokenRequest.ClientID == "" {
+			o.accessTokenRequest.ClientID = o.user.Username
+			o.accessTokenRequest.ClientSecret = *o.user.Password
+		}
+	}
+
 	return nil
 }
 
@@ -124,6 +131,7 @@ func (o *authFlow) SetExpiresAt(minutes int) {
 // validateScopes: verify scopes
 func (o *authFlow) validateScopes() error {
 	if len(o.accessTokenRequest.Scope) > 0 {
+		o.client.Scopes = strings.Replace(o.client.Scopes, " ", ",", 10000)
 		clientScopes := strings.Split(o.client.Scopes, ",")
 		requestScopes := strings.Split(o.accessTokenRequest.Scope, " ")
 
@@ -183,6 +191,27 @@ func (o *authFlow) verifyCredentials() error {
 	return nil
 }
 
+// verifyClientAndSecret: verify client and secret
+func (o *authFlow) verifyClientAndSecret() error {
+	client, err := o.clientRepository.FindById(o.accessTokenRequest.ClientID)
+	if err != nil {
+		return errors.Errorf("invalid client_id")
+	}
+
+	if client.Secret != o.accessTokenRequest.ClientSecret  {
+		return errors.Errorf("client_secret is invalid")
+	}
+
+	if client.Revoked {
+		return errors.Errorf("revoked client_id")
+	}
+
+	o.client = client
+	o.user = client.User
+
+	return nil
+}
+
 // getAccessTokenBase: load base access token
 func (o *authFlow) getAccessTokenBase() (*models.AccessToken, error) {
 	o.token.Claims = &AuthTokenClaim{
@@ -217,12 +246,12 @@ func (o *authFlow) GetAccessToken() (*dto.AccessTokenResponseDTO, error) {
 	switch o.accessTokenRequest.GrantType {
 		case enums.GrantTypePassword.String():
 			return o.grantTypePassword()
+		case enums.GrantTypeClientCredentials.String():
+			return o.grantTypeClientCredentials()
 		case enums.GrantTypeRefreshToken.String():
 			return o.grantTypeRefreshToken()
 		case enums.GrantTypeAuthorizationCode.String():
 			return o.grantTypeAuthorizationCode()
-		case enums.GrantTypeClientCredentials.String():
-			return o.grantTypeClientCredentials()
 		case enums.GrantTypeImplicit.String():
 			return o.grantTypeImplicit()
 		default:
@@ -230,6 +259,7 @@ func (o *authFlow) GetAccessToken() (*dto.AccessTokenResponseDTO, error) {
 	}
 }
 
+// grantTypePassword: flow password
 func (o *authFlow) grantTypePassword() (*dto.AccessTokenResponseDTO, error) {
 
 	err := o.verifyCredentials()
@@ -264,6 +294,45 @@ func (o *authFlow) grantTypePassword() (*dto.AccessTokenResponseDTO, error) {
 	}, nil
 }
 
+// grantTypeClientCredentials: flow client_credentials
+func (o *authFlow) grantTypeClientCredentials() (*dto.AccessTokenResponseDTO, error) {
+
+	err := o.verifyClientAndSecret()
+	if err != nil {
+		return nil, err
+	}
+
+	err = o.validateScopes()
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken, err := o.getAccessTokenBase()
+	if err != nil {
+		return nil, err
+	}
+
+	err = o.accessTokenRepository.Create(accessToken)
+	if err != nil {
+		return nil, errors.Errorf("failed to generate access_token")
+	}
+
+	return &dto.AccessTokenResponseDTO{
+		TokenType:   "Bearer",
+		ExpiresIn:   o.expiresAt,
+		AccessToken: accessToken.AccessToken,
+	}, nil
+}
+
+
+
+
+
+
+
+
+
+
 func (o *authFlow) GetRefreshToken() (*dto.AccessTokenResponseDTO, error) {
 	return nil, nil
 }
@@ -273,25 +342,6 @@ func (o *authFlow) GetAuthorizationCode() (*string, error) {
 }
 
 func (o *authFlow) grantTypeAuthorizationCode() (*dto.AccessTokenResponseDTO, error) {
-	o.token.Claims = &AuthTokenClaim{
-		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: o.expiresAt,
-		},
-	}
-
-	accessToken, err := o.token.SignedString([]byte(o.signature))
-	if err != nil {
-		return nil, errors.Errorf("failed to generate token %s", err.Error())
-	}
-
-	return &dto.AccessTokenResponseDTO{
-		TokenType:   "Bearer",
-		ExpiresIn:   o.expiresAt,
-		AccessToken: accessToken,
-	}, nil
-}
-
-func (o *authFlow) grantTypeClientCredentials() (*dto.AccessTokenResponseDTO, error) {
 	o.token.Claims = &AuthTokenClaim{
 		StandardClaims: &jwt.StandardClaims{
 			ExpiresAt: o.expiresAt,
