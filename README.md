@@ -41,6 +41,27 @@ sql-migrate status
 
 ## Example authorization flows
 
+## Password Grant
+
+```sh
+curl \
+    --location --request POST 'http://localhost:9090/oauth2/token' \
+    --header 'Content-Type: application/x-www-form-urlencoded' \
+    --header 'Authorization: Basic YWRyaWFub2xhc2VsdmE6MTIzQG11ZGFy' \
+    --data-urlencode 'grant_type=password' \
+    --data-urlencode 'client_id=a9832dab-598c-11ea-a5a2-0242c0a8a000' \
+    --data-urlencode 'client_secret=secret' \
+    --data-urlencode 'scope=user:read user:write user:delete'
+```
+
+```json
+{
+    "token_type": "Bearer",
+    "expires_in": 1584305783,
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1ODQzMDU3ODMsInByb2ZpbGUiOnsiaWQiOiI4ZDQyZWUzZS01NzE3LTRiNjUtYjBiNi0yMTgzNjFmOTgxYjMiLCJuYW1lIjoiQWRyaWFubyIsImxhc3RfbmFtZSI6Ik1vcmVpcmEgTGEgU2VsdmEiLCJlbWFpbCI6ImFkcmlhbm9sYXNlbHZhQGdtYWlsLmNvbSIsInVzZXJuYW1lIjoiYWRyaWFub2xhc2VsdmEiLCJhY3RpdmF0ZWQiOnRydWUsImJpcnRoZGF5IjoiMTk4Ny0wMi0xMSIsImNyZWF0ZWRfYXQiOiIyMDIwLTAzLTE0IDE2OjA1OjA0IiwidXBkYXRlZF9hdCI6IjIwMjAtMDMtMTUgMTg6NTY6MTkiLCJleHBpcmVzX2F0IjoiIiwiZGVsZXRlZF9hdCI6IiJ9LCJjbGllbnRfaWQiOiJhOTgzMmRhYi01OThjLTExZWEtYTVhMi0wMjQyYzBhOGEwMDAiLCJzY29wZSI6WyJ1c2VyOnJlYWQsdXNlcjp3cml0ZSx1c2VyOmRlbGV0ZSJdfQ.8ilhi4Ju_YRxOqYtTtM2Qbh3mYmHpNzWhd_Lf4jBCss"
+}
+```
+
 ## Authorization Code Grant
 
 #### Sample request

@@ -5,7 +5,7 @@ info:
 #schemes:
 #  - https
 securityDefinitions:
-  basicAuth:
+  BasicAuth:
     type: basic
   OAuth2:
     type: oauth2
@@ -122,6 +122,8 @@ paths:
     post:
       tags:
         - OAuth2
+      security:
+        - BasicAuth: []
       description: |
         Create configuration
       consumes:

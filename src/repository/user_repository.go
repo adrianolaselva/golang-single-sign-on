@@ -14,7 +14,8 @@ type UserRepository interface {
 	FindByUsername(username string) (*models.User, error)
 	FindByEmail(email string) (*models.User, error)
 	Paginate(filters *map[string]interface{}, orderBy *string, orderDir *string, limit *int, page *int)  (*common.PaginationCommon, error)
-	LoadRolesByUserId(uuid string) ([]*models.Role, error)
+	LoadRolesById(uuid string) ([]*models.Role, error)
+	LoadClientsById(uuid string) ([]*models.Client, error)
 }
 
 type userRepositoryImpl struct {
@@ -51,7 +52,7 @@ func (u *userRepositoryImpl) Delete(uuid string) error {
 
 func (u *userRepositoryImpl) FindById(uuid string) (*models.User, error) {
 	var user models.User
-	result := u.conn.Where("id = ?", uuid).Preload("Roles").First(&user)
+	result := u.conn.Where("id = ?", uuid).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -60,7 +61,7 @@ func (u *userRepositoryImpl) FindById(uuid string) (*models.User, error) {
 
 func (u *userRepositoryImpl) FindByUsername(username string) (*models.User, error) {
 	var user models.User
-	result := u.conn.Where("username = ?", username).Preload("Roles").First(&user)
+	result := u.conn.Where("username = ?", username).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -69,7 +70,7 @@ func (u *userRepositoryImpl) FindByUsername(username string) (*models.User, erro
 
 func (u *userRepositoryImpl) FindByEmail(email string) (*models.User, error) {
 	var user models.User
-	result := u.conn.Where("email = ?", email).Preload("Roles").First(&user)
+	result := u.conn.Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -113,11 +114,20 @@ func (u *userRepositoryImpl) Paginate(filters *map[string]interface{}, orderBy *
 	}, nil
 }
 
-func (u *userRepositoryImpl) LoadRolesByUserId(uuid string) ([]*models.Role, error) {
+func (u *userRepositoryImpl) LoadRolesById(uuid string) ([]*models.Role, error) {
 	var user models.User
 	result := u.conn.Preload("Roles").Where("id = ?", uuid).First(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return user.Roles, nil
+}
+
+func (u *userRepositoryImpl) LoadClientsById(uuid string) ([]*models.Client, error) {
+	var user models.User
+	result := u.conn.Preload("Clients").Where("id = ?", uuid).First(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return user.Clients, nil
 }

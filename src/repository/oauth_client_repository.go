@@ -6,8 +6,8 @@ import (
 )
 
 type ClientRepository interface {
-	Create(user *models.Client) error
-	Update(user *models.Client) error
+	Create(client *models.Client) error
+	Update(client *models.Client) error
 	FindById(id string) (*models.Client, error)
 }
 
@@ -19,14 +19,30 @@ func NewClientRepository(conn *gorm.DB) *clientRepository {
 	return &clientRepository{conn}
 }
 
-func (c clientRepository) Create(user *models.Client) error {
-	panic("implement me")
+func (c clientRepository) Create(client *models.Client) error {
+	result := c.conn.Create(&client)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }
 
-func (c clientRepository) Update(user *models.Client) error {
-	panic("implement me")
+func (c clientRepository) Update(client *models.Client) error {
+	result := c.conn.Model(&client).Update(&client)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	return nil
 }
 
 func (c clientRepository) FindById(id string) (*models.Client, error) {
-	panic("implement me")
+	client := models.Client{}
+	result := c.conn.Where("id = ?", id).Preload("User").First(&client)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+
+	return &client, nil
 }
