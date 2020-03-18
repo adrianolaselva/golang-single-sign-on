@@ -76,13 +76,12 @@ func (a * Bootstrap) Run() {
 	authenticationMiddleware := middlewares.NewAuthenticationMiddleware(userService)
 
 	routeCommon := common.Route{}
+	router.PathPrefix("/app").Handler(http.StripPrefix("/app", http.FileServer(http.Dir("./public/dist/app"))))
 	routeCommon.Initialize(router, routes.NewHealthRoutes(healthController).Routes())
 	routeCommon.Initialize(router, routes.NewSwaggerRoutes(swaggerController).Routes())
 	routeCommon.Initialize(router, routes.NewOAuthRoutes(oauthController, authenticationMiddleware).Routes())
 	routeCommon.Initialize(router, routes.NewUserRoutes(userController, authenticationMiddleware).Routes())
 	routeCommon.Initialize(router, routes.NewRoleRoutes(roleController, authenticationMiddleware).Routes())
-
-	//router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./public/dist/app"))))
 
 	router.PathPrefix("/swagger").Handler(httpSwagger.Handler(
 		httpSwagger.URL("/swagger/docs.json"),
@@ -90,7 +89,6 @@ func (a * Bootstrap) Run() {
 		httpSwagger.DocExpansion("list"),
 		httpSwagger.DomID("#swagger-ui"),
 	))
-	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./public/dist/app"))))
 
 	headers := handlers.AllowedHeaders([]string{
 		"Content-Type",

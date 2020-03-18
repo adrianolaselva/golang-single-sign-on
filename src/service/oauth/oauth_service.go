@@ -2,10 +2,12 @@ package oauth
 
 import (
 	"encoding/base64"
+	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/schema"
 	"github.com/pkg/errors"
 	"log"
+	"math/rand"
 	"net/http"
 	"net/url"
 	"oauth2/src/common"
@@ -29,6 +31,7 @@ type AuthFlow interface {
 	SetExpiresAt(minutes int)
 	GetAccessToken() (*dto.AccessTokenResponseDTO, error)
 	GetAuthorizationCode() (*string, error)
+	Login(loginDTO dto.LoginDTO) (*dto.LoginResponseDTO, error)
 	verifyCredentials() error
 	verifyClientAndSecret() error
 	verifyClient() error
@@ -38,6 +41,7 @@ type AuthFlow interface {
 	grantTypePassword() (*dto.AccessTokenResponseDTO, error)
 	grantTypeClientCredentials() (*dto.AccessTokenResponseDTO, error)
 	grantTypeRefreshToken() (*dto.AccessTokenResponseDTO, error)
+	generateCode() string
 }
 
 type authFlow struct {
@@ -193,6 +197,74 @@ func (o *authFlow) verifyClient() error {
 	o.client = client
 
 	return nil
+}
+
+func (o *authFlow) Login(loginDTO dto.LoginDTO) (*dto.LoginResponseDTO, error) {
+	o.user = &models.User{
+		Username:  loginDTO.Username,
+		Password:  &loginDTO.Password,
+	}
+
+	o.accessTokenRequest = &dto.AccessTokenRequestDTO{
+		ClientID:     loginDTO.ClientID,
+	}
+
+	loginResponseDTO := &dto.LoginResponseDTO{
+		ResponseType: loginDTO.ResponseType,
+		ClientID: loginDTO.ClientID,
+		Username: o.user.Username,
+		Scope: loginDTO.Scope,
+		State: loginDTO.State,
+		RedirectUri: &loginDTO.RedirectURI,
+	}
+
+	err := o.verifyCredentials()
+	if err != nil {
+		return nil, err
+	}
+
+	err = o.verifyClient()
+	if err != nil {
+		return nil, err
+	}
+
+	if o.client.Redirect != loginDTO.RedirectURI {
+		return nil, errors.Errorf("invalid redirect_uri")
+	}
+
+	switch loginDTO.ResponseType {
+		case enums.ResponseTypeToken.String():
+			accessToken, err := o.getAccessTokenBase()
+			if err != nil {
+				return nil, errors.Errorf("failed to generate access_token: %s", err.Error())
+			}
+
+			err = o.accessTokenRepository.Create(accessToken)
+			if err != nil {
+				return nil, errors.Errorf("failed to generate access_token")
+			}
+			log.Println("TESTE: ", o.accessTokenExpiresAt)
+			loginResponseDTO.AccessToken = &dto.AccessTokenResponseDTO{
+				TokenType:    "Bearer",
+				ExpiresIn:   o.accessTokenExpiresAt,
+				AccessToken:  accessToken.AccessToken,
+				State: &loginDTO.State,
+			}
+
+			err = o.getRefreshTokenBase(accessToken, loginResponseDTO.AccessToken)
+			if err != nil {
+				return nil, errors.Errorf("failed to generate access_token")
+			}
+
+			break
+		case enums.ResponseTypeAuthorizationCode.String():
+			loginResponseDTO.Code = o.generateCode()
+			break
+		default:
+			return nil, errors.Errorf("invalid response_type: %s", loginDTO.ResponseType)
+	}
+
+	return loginResponseDTO, nil
 }
 
 // verifyCredentials: verify credentials
@@ -445,14 +517,20 @@ func (o *authFlow) grantTypeRefreshToken() (*dto.AccessTokenResponseDTO, error) 
 	return &accessTokenResponseDTO, nil
 }
 
-
-
-
+// GetAuthorizationCode: generate code for obtain access_token, flow `authorization_code`
 func (o *authFlow) GetAuthorizationCode() (*string, error) {
 	return nil, nil
 }
 
+// grantTypeAuthorizationCode: obtain access_token from de `code` of the flow `authorization_code`
 func (o *authFlow) grantTypeAuthorizationCode() (*dto.AccessTokenResponseDTO, error) {
+
+	// carrega oauth_auth_codes a partir do code
+
+	// gera token para o client_id vinculado aferindo o usuário logado
+
+	// gera refresh token
+
 	o.token.Claims = &AuthTokenClaim{
 		StandardClaims: &jwt.StandardClaims{
 			ExpiresAt: o.accessTokenExpiresAt,
@@ -489,4 +567,10 @@ func (o *authFlow) grantTypeImplicit() (*dto.AccessTokenResponseDTO, error) {
 		RefreshToken: &accessToken,
 		AccessToken: accessToken,
 	}, nil
+}
+
+func (o *authFlow) generateCode() string {
+	b := make([]byte, 64)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)
 }
