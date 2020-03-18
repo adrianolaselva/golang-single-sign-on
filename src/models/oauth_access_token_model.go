@@ -7,8 +7,8 @@ import (
 )
 
 type AccessToken struct {
-	ID      		string 		`gorm:"column:id;type:varchar(36);primary_key;"`
-	AccessToken		string		`gorm:"column:access_token;type:varchar(1024);not null;"`
+	ID      		string 		`gorm:"column:id;type:varchar(255);primary_key;"`
+	AccessToken		string		`gorm:"column:access_token;type:varchar(5000);not null;"`
 	Scopes			string		`gorm:"column:scopes;type:varchar(1024);not null;"`
 	Revoked			bool    	`gorm:"column:revoked;not null;type:boolean;default:false"`
 	ExpiresAt 		*time.Time	`gorm:"column:expires_at;not null;"`

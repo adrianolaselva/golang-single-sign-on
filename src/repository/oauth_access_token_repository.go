@@ -53,8 +53,8 @@ func (a accessTokenRepository) FindById(id string) (*models.AccessToken, error) 
 
 func (a accessTokenRepository) FindByAccessToken(token string) (*models.AccessToken, error) {
 	accessToken := models.AccessToken{}
-	result := a.conn.Where("access_token_id = ? ", token).First(&accessToken)
-	if result != nil {
+	result := a.conn.Where("access_token = ?", token).First(&accessToken)
+	if result.Error != nil {
 		return nil, result.Error
 	}
 	

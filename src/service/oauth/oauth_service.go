@@ -46,6 +46,8 @@ type authFlow struct {
 	accessTokenExpiresAt int64
 	refreshTokenExpiresAt int64
 	signature string
+	tokenType string
+	accessToken string
 	hash common.Hash
 	user *models.User
 	client *models.Client
@@ -123,6 +125,9 @@ func (o *authFlow) SetRequest(r *http.Request) error {
 			}
 
 			o.token = token
+
+			o.tokenType = auth[0]
+			o.accessToken = auth[1]
 		}
 	}
 
@@ -179,10 +184,6 @@ func (o *authFlow) verifyClient() error {
 	client, err := o.clientRepository.FindById(o.accessTokenRequest.ClientID)
 	if err != nil {
 		return errors.Errorf("invalid client_id")
-	}
-
-	if client.User == nil || client.User.ID != o.user.ID {
-		return errors.Errorf("client_id not found for user")
 	}
 
 	if client.Revoked {
@@ -392,6 +393,16 @@ func (o *authFlow) grantTypeRefreshToken() (*dto.AccessTokenResponseDTO, error) 
 	refreshToken, err := o.refreshTokenRepository.FindByRefreshToken(o.accessTokenRequest.RefreshToken)
 	if err != nil {
 		return nil, errors.Errorf("refresh_token not found")
+	}
+
+
+	requestAccessToken, err := o.accessTokenRepository.FindByAccessToken(o.accessToken)
+	if err != nil {
+		return nil, errors.Errorf("access_token not found")
+	}
+
+	if requestAccessToken.Revoked {
+		return nil, errors.Errorf("access_token has revoked")
 	}
 
 	if refreshToken.Revoked {
