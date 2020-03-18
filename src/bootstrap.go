@@ -18,8 +18,6 @@ import (
 	"oauth2/src/service/oauth"
 	"os"
 	"time"
-
-	//httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type Bootstrap struct {
@@ -84,13 +82,30 @@ func (a * Bootstrap) Run() {
 	routeCommon.Initialize(router, routes.NewUserRoutes(userController, authenticationMiddleware).Routes())
 	routeCommon.Initialize(router, routes.NewRoleRoutes(roleController, authenticationMiddleware).Routes())
 
-	swaggerHandler := httpSwagger.Handler(func(config *httpSwagger.Config) {
-		config.URL = "/swagger/docs.json"
-	})
-	router.PathPrefix("/").Handler(swaggerHandler)
+	//router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./public/dist/app"))))
 
-	headers := handlers.AllowedHeaders([]string{"Content-Type", "X-Request", "Location", "Entity", "Accept"})
-	methods := handlers.AllowedMethods([]string{http.MethodGet, http.MethodPost, http.MethodPut, http.MethodDelete})
+	router.PathPrefix("/swagger").Handler(httpSwagger.Handler(
+		httpSwagger.URL("/swagger/docs.json"),
+		httpSwagger.DeepLinking(true),
+		httpSwagger.DocExpansion("list"),
+		httpSwagger.DomID("#swagger-ui"),
+	))
+	router.PathPrefix("/").Handler(http.StripPrefix("/", http.FileServer(http.Dir("./public/dist/app"))))
+
+	headers := handlers.AllowedHeaders([]string{
+		"Content-Type",
+		"X-Request",
+		"Location",
+		"Entity",
+		"Accept",
+	})
+	methods := handlers.AllowedMethods([]string{
+		http.MethodGet,
+		http.MethodPost,
+		http.MethodPut,
+		http.MethodDelete,
+		http.MethodPatch,
+	})
 	origins := handlers.AllowedOrigins([]string{"*"})
 
 	log.Printf(fmt.Sprintf("Server started on port 0.0.0.0:%s", appPort))

@@ -340,11 +340,18 @@ func (o *authFlow) grantTypePassword() (*dto.AccessTokenResponseDTO, error) {
 		return nil, errors.Errorf("failed to generate access_token")
 	}
 
-	return &dto.AccessTokenResponseDTO{
+	accessTokenResponseDTO := &dto.AccessTokenResponseDTO{
 		TokenType:   "Bearer",
 		ExpiresIn:   o.accessTokenExpiresAt,
 		AccessToken: accessToken.AccessToken,
-	}, nil
+	}
+
+	err = o.getRefreshTokenBase(accessToken, accessTokenResponseDTO)
+	if err != nil {
+		return nil, errors.Errorf("failed to generate access_token")
+	}
+
+	return accessTokenResponseDTO, nil
 }
 
 // grantTypeClientCredentials: flow client_credentials

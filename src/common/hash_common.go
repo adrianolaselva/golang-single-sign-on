@@ -1,6 +1,8 @@
 package common
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"golang.org/x/crypto/bcrypt"
+)
 
 type Hash interface {
 	BCryptGenerate(password string) (string, error)
@@ -20,10 +22,11 @@ func (h *hashImpl) BCryptGenerate(password string) (string, error) {
 	return string(bytes), err
 }
 
-func (h *hashImpl) BCryptCompare(hashedPassword string, password string) (bool, error) {
+func (h *hashImpl) BCryptCompare(hashedPassword string,  password string) (bool, error) {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
 	if err != nil {
 		return false, err
 	}
+
 	return true, err
 }

@@ -1,0 +1,26 @@
+<div class="text-center">
+
+  <form class="form-signin" [formGroup]="formLogin" (ngSubmit)="onSubmit(formLogin.value)" novalidate>
+    <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+
+    <app-input-text-component errorMessage="Campo obrigatório e a partir de 3 catacteres" label="Username">
+      <label for="username" class="sr-only">Username</label>
+      <input type="text" id="username" formControlName="username" class="form-control" placeholder="Username" required autofocus>
+    </app-input-text-component>
+
+    <app-input-password-component errorMessage="Campo obrigatório e a partir de 3 catacteres" label="Password">
+      <label for="password" class="sr-only">Password</label>
+      <input type="password" id="password" formControlName="password" class="form-control" placeholder="Password" required>
+    </app-input-password-component>
+
+    <div class="checkbox mb-3">
+      <label>
+        <input type="checkbox" id="remember" value="remember-me"> Remember me
+      </label>
+    </div>
+
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+    <p class="mt-5 mb-3 text-muted">&copy; 2020</p>
+  </form>
+  <div *ngIf="formLogin.errors?.username">error</div>
+</div>

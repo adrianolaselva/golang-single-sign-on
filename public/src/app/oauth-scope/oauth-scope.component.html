@@ -1,0 +1,39 @@
+<div class="text-center">
+
+  <form class="form-signin" [formGroup]="formAuthScopes" (ngSubmit)="onSubmit(formAuthScopes.value)" novalidate>
+
+    <div class="text-center">
+      <h1 class="h3 mb-3 font-weight-normal">This app would like to: </h1>
+    </div>
+
+    <hr />
+
+    <div class="row">
+      <div class="col-md-12" style="text-align: left">
+        <div *ngFor="let scope of scopesList" class="col-md-12">
+          <div class="row">
+            <div class="col-md-8">
+              <label style="font-size: 18px">{{ scope }}</label>
+            </div>
+            <div class="col-lg-4" style="text-align: right">
+              <span class="glyphicon glyphicon-exclamation-sign"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <hr />
+
+    <div class="row">
+      <div class="col-md-6">
+        <button class="btn btn-lg btn-success btn-block" type="submit">Authorize</button>
+      </div>
+      <div class="col-md-6">
+        <button class="btn btn-lg btn-default btn-block" type="submit">cancel</button>
+      </div>
+    </div>
+
+  </form>
+  <div *ngIf="formAuthScopes.errors?.username">error</div>
+</div>

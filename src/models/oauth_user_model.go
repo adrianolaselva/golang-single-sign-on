@@ -12,8 +12,8 @@ type User struct {
 	ID          string 		`json:"id"gorm:"column:id;primary_key:true;type:varchar(36);not null;"`
 	Name     	string  	`json:"name"gorm:"column:name;type:varchar(120);not null;"`
 	LastName    string  	`json:"last_name"gorm:"column:last_name;type:varchar(120);not null;"`
-	Email       string  	`json:"email"gorm:"column:email;type:varchar(120);not null;unique_index"`
-	Username    string  	`json:"username"gorm:"column:username;type:varchar(120);not null;unique_index"`
+	Email       string  	`json:"email"gorm:"column:email;type:varchar(120);not null;unique_index"sql:"index"`
+	Username    string  	`json:"username"gorm:"column:username;type:varchar(120);not null;unique_index"sql:"index"`
 	Password    *string  	`json:"password,omitempty"gorm:"column:password;type:varchar(120);not null;"`
 	Birthday    *time.Time  `json:"birthday"gorm:"column:birthday;type:date;null;"`
 	Activated 	bool    	`json:"activated"gorm:"column:activated;not null;type:boolean;default:true"`
