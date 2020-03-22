@@ -58,13 +58,13 @@ paths:
             The URL to which the authentication server redirects the browser after authorization has been granted by the user.
         - in: query
           name: state
-          required: true
+          required: false
           type: string
           description: |
             An opaque value the clients adds to the initial request. The authorization server includes this value when redirecting back to the client.
         - in: query
           name: scope
-          required: true
+          required: false
           type: string
           description: |
             Can be a combination of any system-reserved scopes or custom scopes associated with a client. Scopes must be separated by spaces.

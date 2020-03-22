@@ -121,7 +121,6 @@ func (o *authFlow) SetRequest(r *http.Request) error {
 		Password: &o.accessTokenRequest.Password,
 	}
 
-
 	auth := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 	if len(auth) == 2 || auth[0] == "Basic" {
 		payload, _ := base64.StdEncoding.DecodeString(auth[1])
@@ -182,7 +181,9 @@ func (o *authFlow) SetRequest(r *http.Request) error {
 
 // ValidateParameters: validate parameters by authentication flow
 func (o *authFlow) ValidateParameters() error {
-	switch o.accessTokenRequest.GrantType {
+
+	if o.accessTokenRequest != nil {
+		switch o.accessTokenRequest.GrantType {
 		case enums.GrantTypeAuthorizationCode.String():
 			if &o.accessTokenRequest.ClientID == nil {
 				return errors.Errorf("client_id not defined")
@@ -230,6 +231,7 @@ func (o *authFlow) ValidateParameters() error {
 			if &o.accessTokenRequest.RefreshToken == nil {
 				return errors.Errorf("refresh_token not defined")
 			}
+
 			if &o.accessToken == nil {
 				return errors.Errorf("access_token not defined")
 			}
@@ -243,7 +245,9 @@ func (o *authFlow) ValidateParameters() error {
 				return errors.Errorf("client_secret not defined")
 			}
 			break
+		}
 	}
+
 	return nil
 }
 
@@ -335,7 +339,6 @@ func (o *authFlow) Login(loginDTO dto.LoginDTO) (*dto.LoginResponseDTO, error) {
 			if err != nil {
 				return nil, errors.Errorf("failed to generate access_token: %s", err.Error())
 			}
-
 
 			err = o.accessTokenRepository.Create(accessToken)
 			if err != nil {
