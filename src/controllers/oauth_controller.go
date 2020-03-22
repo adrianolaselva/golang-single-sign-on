@@ -66,6 +66,15 @@ func (h *oAuthControllerImpl) GetLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = h.authFlow.ValidateParameters()
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(&dto.AccessTokenErrorResponseDTO{
+			Error:	err.Error(),
+		})
+		return
+	}
+
 	h.authFlow.SetExpiresAt(120)
 
 	loginResponse, err := h.authFlow.Login(loginDTO)
@@ -94,6 +103,15 @@ func (h *oAuthControllerImpl) PostToken(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	err = h.authFlow.ValidateParameters()
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(&dto.AccessTokenErrorResponseDTO{
+			Error:	err.Error(),
+		})
+		return
+	}
+
 	h.authFlow.SetExpiresAt(120)
 
 	accessToken, err := h.authFlow.GetAccessToken()
@@ -111,6 +129,16 @@ func (h *oAuthControllerImpl) PostToken(w http.ResponseWriter, r *http.Request) 
 
 func (h *oAuthControllerImpl) GetUserInfo(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	err := h.authFlow.ValidateParameters()
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		_ = json.NewEncoder(w).Encode(&dto.AccessTokenErrorResponseDTO{
+			Error:	err.Error(),
+		})
+		return
+	}
+
 	data := make(map[string]string)
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(data)

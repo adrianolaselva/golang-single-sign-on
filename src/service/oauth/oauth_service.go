@@ -36,6 +36,7 @@ type AuthFlow interface {
 	verifyCredentials() error
 	verifyClientAndSecret() error
 	verifyClient() error
+	verifyAuthCode() error
 	validateScopes() error
 	getAccessTokenBase() (*models.AccessToken, error)
 	getRefreshTokenBase(accessToken *models.AccessToken, accessTokenResponseDTO *dto.AccessTokenResponseDTO) error
@@ -131,6 +132,10 @@ func (o *authFlow) SetRequest(r *http.Request) error {
 				o.accessTokenRequest.ClientID = pair[0]
 				o.accessTokenRequest.ClientSecret = pair[1]
 				break
+			case enums.GrantTypeImplicit.String():
+				o.accessTokenRequest.ClientID = pair[0]
+				o.accessTokenRequest.ClientSecret = pair[1]
+				break
 			case enums.GrantTypePassword.String():
 				o.accessTokenRequest.ClientID = pair[0]
 				o.accessTokenRequest.ClientSecret = pair[1]
@@ -177,6 +182,68 @@ func (o *authFlow) SetRequest(r *http.Request) error {
 
 // ValidateParameters: validate parameters by authentication flow
 func (o *authFlow) ValidateParameters() error {
+	switch o.accessTokenRequest.GrantType {
+		case enums.GrantTypeAuthorizationCode.String():
+			if &o.accessTokenRequest.ClientID == nil {
+				return errors.Errorf("client_id not defined")
+			}
+
+			if &o.accessTokenRequest.ClientSecret == nil {
+				return errors.Errorf("client_secret not defined")
+			}
+
+			if &o.accessTokenRequest.Code == nil {
+				return errors.Errorf("code not defined")
+			}
+
+			if &o.accessTokenRequest.RedirectURI == nil {
+				return errors.Errorf("redirect_uri not defined")
+			}
+			break
+		case enums.GrantTypeImplicit.String():
+			if &o.accessTokenRequest.ClientID == nil {
+				return errors.Errorf("client_id not defined")
+			}
+
+			if &o.accessTokenRequest.RedirectURI == nil {
+				return errors.Errorf("redirect_uri not defined")
+			}
+			break
+		case enums.GrantTypePassword.String():
+			if &o.accessTokenRequest.ClientID == nil {
+				return errors.Errorf("client_id not defined")
+			}
+
+			if &o.accessTokenRequest.ClientSecret == nil {
+				return errors.Errorf("client_secret not defined")
+			}
+
+			if &o.accessTokenRequest.Username == nil {
+				return errors.Errorf("username not defined")
+			}
+
+			if &o.accessTokenRequest.Password == nil {
+				return errors.Errorf("password not defined")
+			}
+			break
+		case enums.GrantTypeRefreshToken.String():
+			if &o.accessTokenRequest.RefreshToken == nil {
+				return errors.Errorf("refresh_token not defined")
+			}
+			if &o.accessToken == nil {
+				return errors.Errorf("access_token not defined")
+			}
+			break
+		case enums.GrantTypeClientCredentials.String():
+			if &o.accessTokenRequest.ClientID == nil {
+				return errors.Errorf("client_id not defined")
+			}
+
+			if &o.accessTokenRequest.ClientSecret == nil {
+				return errors.Errorf("client_secret not defined")
+			}
+			break
+	}
 	return nil
 }
 
@@ -307,7 +374,7 @@ func (o *authFlow) Login(loginDTO dto.LoginDTO) (*dto.LoginResponseDTO, error) {
 		default:
 			return nil, errors.Errorf("invalid response_type: %s", loginDTO.ResponseType)
 	}
-	log.Println(loginDTO.ResponseType)
+
 	return loginResponseDTO, nil
 }
 
@@ -330,7 +397,6 @@ func (o *authFlow) verifyCredentials() error {
 
 // verifyClientAndSecret: verify client and secret
 func (o *authFlow) verifyClientAndSecret() error {
-	log.Println(o.accessTokenRequest)
 	client, err := o.clientRepository.FindById(o.accessTokenRequest.ClientID)
 	if err != nil {
 		return errors.Errorf("invalid client_id")
