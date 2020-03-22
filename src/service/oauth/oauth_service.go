@@ -28,6 +28,7 @@ type AuthTokenClaim struct {
 
 type AuthFlow interface {
 	SetRequest(r *http.Request) error
+	ValidateParameters() error
 	SetExpiresAt(minutes int)
 	GetAccessToken() (*dto.AccessTokenResponseDTO, error)
 	GetAuthorizationCode() (*string, error)
@@ -49,6 +50,7 @@ type authFlow struct {
 	accessTokenRequest *dto.AccessTokenRequestDTO
 	accessTokenExpiresAt int64
 	refreshTokenExpiresAt int64
+	authCodeExpiresAt int64
 	signature string
 	tokenType string
 	accessToken string
@@ -108,13 +110,41 @@ func (o *authFlow) SetRequest(r *http.Request) error {
 		r.Form.Set(key, values.Get(key))
 	}
 
+	accessTokenRequest := dto.AccessTokenRequestDTO{}
+	if err := schema.NewDecoder().Decode(&accessTokenRequest, values); err != nil {
+		return err
+	}
+	o.accessTokenRequest = &accessTokenRequest
+	o.user = &models.User{
+		Username: o.accessTokenRequest.Username,
+		Password: &o.accessTokenRequest.Password,
+	}
+
+
 	auth := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
 	if len(auth) == 2 || auth[0] == "Basic" {
 		payload, _ := base64.StdEncoding.DecodeString(auth[1])
 		pair := strings.SplitN(string(payload), ":", 2)
-		o.user = &models.User{
-			Username: pair[0],
-			Password: &pair[1],
+
+		switch accessTokenRequest.GrantType {
+			case enums.GrantTypeAuthorizationCode.String():
+				o.accessTokenRequest.ClientID = pair[0]
+				o.accessTokenRequest.ClientSecret = pair[1]
+				break
+			case enums.GrantTypePassword.String():
+				o.accessTokenRequest.ClientID = pair[0]
+				o.accessTokenRequest.ClientSecret = pair[1]
+				o.user = &models.User{
+					Username: accessTokenRequest.Username,
+					Password: &accessTokenRequest.Password,
+				}
+				break
+			default:
+				o.user = &models.User{
+					Username: pair[0],
+					Password: &pair[1],
+				}
+				break
 		}
 	}
 
@@ -135,12 +165,6 @@ func (o *authFlow) SetRequest(r *http.Request) error {
 		}
 	}
 
-	accessTokenRequest := dto.AccessTokenRequestDTO{}
-	if err := schema.NewDecoder().Decode(&accessTokenRequest, values); err != nil {
-		return err
-	}
-	o.accessTokenRequest = &accessTokenRequest
-
 	if accessTokenRequest.GrantType == enums.GrantTypeClientCredentials.String() {
 		if o.accessTokenRequest.ClientID == "" {
 			o.accessTokenRequest.ClientID = o.user.Username
@@ -151,10 +175,16 @@ func (o *authFlow) SetRequest(r *http.Request) error {
 	return nil
 }
 
+// ValidateParameters: validate parameters by authentication flow
+func (o *authFlow) ValidateParameters() error {
+	return nil
+}
+
 // SetExpiresAt: set time expires
 func (o *authFlow) SetExpiresAt(minutes int) {
 	o.accessTokenExpiresAt = time.Now().Add(time.Minute * time.Duration(minutes)).Unix()
 	o.refreshTokenExpiresAt = time.Now().Add(time.Minute * time.Duration(minutes * 120)).Unix()
+	o.authCodeExpiresAt = time.Now().Add(time.Minute * time.Duration(5)).Unix()
 }
 
 // validateScopes: verify scopes
@@ -239,11 +269,12 @@ func (o *authFlow) Login(loginDTO dto.LoginDTO) (*dto.LoginResponseDTO, error) {
 				return nil, errors.Errorf("failed to generate access_token: %s", err.Error())
 			}
 
+
 			err = o.accessTokenRepository.Create(accessToken)
 			if err != nil {
 				return nil, errors.Errorf("failed to generate access_token")
 			}
-			log.Println("TESTE: ", o.accessTokenExpiresAt)
+
 			loginResponseDTO.AccessToken = &dto.AccessTokenResponseDTO{
 				TokenType:    "Bearer",
 				ExpiresIn:   o.accessTokenExpiresAt,
@@ -259,11 +290,24 @@ func (o *authFlow) Login(loginDTO dto.LoginDTO) (*dto.LoginResponseDTO, error) {
 			break
 		case enums.ResponseTypeAuthorizationCode.String():
 			loginResponseDTO.Code = o.generateCode()
+			expiresAt := time.Unix(o.authCodeExpiresAt, 0)
+			authCode := &models.AuthCode{
+				Code:      loginResponseDTO.Code,
+				Scopes:    o.accessTokenRequest.Scope,
+				ExpiresAt: &expiresAt,
+				User:      o.user,
+				Client:    o.client,
+			}
+
+			err = o.authCodeRepository.Create(authCode)
+			if err != nil {
+				return nil, errors.Errorf("failed to generate authorization code")
+			}
 			break
 		default:
 			return nil, errors.Errorf("invalid response_type: %s", loginDTO.ResponseType)
 	}
-
+	log.Println(loginDTO.ResponseType)
 	return loginResponseDTO, nil
 }
 
@@ -286,6 +330,7 @@ func (o *authFlow) verifyCredentials() error {
 
 // verifyClientAndSecret: verify client and secret
 func (o *authFlow) verifyClientAndSecret() error {
+	log.Println(o.accessTokenRequest)
 	client, err := o.clientRepository.FindById(o.accessTokenRequest.ClientID)
 	if err != nil {
 		return errors.Errorf("invalid client_id")
@@ -301,6 +346,30 @@ func (o *authFlow) verifyClientAndSecret() error {
 
 	o.client = client
 	o.user = client.User
+
+	return nil
+}
+
+// verifyAuthCode: verify authorization code
+func (o *authFlow) verifyAuthCode() error {
+	authCode, err := o.authCodeRepository.FindByCode(o.accessTokenRequest.Code)
+	if err != nil {
+		return errors.Errorf("invalid authorization code")
+	}
+
+	if authCode.Revoked {
+		return errors.Errorf("revoked authorization code")
+	}
+
+	o.client = authCode.Client
+	o.user = authCode.User
+	o.accessTokenRequest.Scope = strings.Replace(authCode.Scopes, " ", ",", 1000)
+
+	authCode.Revoked = true
+	err = o.authCodeRepository.Update(authCode)
+	if err != nil {
+		return errors.Errorf("failed to revoked authorization code")
+	}
 
 	return nil
 }
@@ -525,28 +594,38 @@ func (o *authFlow) GetAuthorizationCode() (*string, error) {
 // grantTypeAuthorizationCode: obtain access_token from de `code` of the flow `authorization_code`
 func (o *authFlow) grantTypeAuthorizationCode() (*dto.AccessTokenResponseDTO, error) {
 
-	// carrega oauth_auth_codes a partir do code
-
-	// gera token para o client_id vinculado aferindo o usuário logado
-
-	// gera refresh token
-
-	o.token.Claims = &AuthTokenClaim{
-		StandardClaims: &jwt.StandardClaims{
-			ExpiresAt: o.accessTokenExpiresAt,
-		},
-	}
-
-	accessToken, err := o.token.SignedString([]byte(o.signature))
+	err := o.verifyClientAndSecret()
 	if err != nil {
-		return nil, errors.Errorf("failed to generate token %s", err.Error())
+		return nil, err
 	}
 
-	return &dto.AccessTokenResponseDTO{
+	err = o.verifyAuthCode()
+	if err != nil {
+		return nil, err
+	}
+
+	accessToken, err := o.getAccessTokenBase()
+	if err != nil {
+		return nil, err
+	}
+
+	err = o.accessTokenRepository.Create(accessToken)
+	if err != nil {
+		return nil, errors.Errorf("failed to generate access_token")
+	}
+
+	accessTokenResponseDTO := &dto.AccessTokenResponseDTO{
 		TokenType:   "Bearer",
 		ExpiresIn:   o.accessTokenExpiresAt,
-		AccessToken: accessToken,
-	}, nil
+		AccessToken: accessToken.AccessToken,
+	}
+
+	err = o.getRefreshTokenBase(accessToken, accessTokenResponseDTO)
+	if err != nil {
+		return nil, errors.Errorf("failed to generate access_token")
+	}
+
+	return accessTokenResponseDTO, nil
 }
 
 func (o *authFlow) grantTypeImplicit() (*dto.AccessTokenResponseDTO, error) {

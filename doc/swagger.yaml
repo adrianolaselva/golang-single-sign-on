@@ -1,9 +1,7 @@
 swagger: "2.0"
 info:
   version: "v1"
-  title: "Single Sign-on Golang"
-#schemes:
-#  - https
+  title: "Midgard"
 securityDefinitions:
   Basic:
     type: basic
@@ -14,7 +12,7 @@ securityDefinitions:
   OAuth2:
     type: oauth2
     flow: password
-    tokenUrl: https://app.aglaia.com/oauth2/token
+    tokenUrl: /oauth2/token
 #    scopes:
 #      users:write: write users
 #      users:read: read users

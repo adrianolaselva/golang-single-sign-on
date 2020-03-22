@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	_ "github.com/dgrijalva/jwt-go"
-	"log"
 	"net/http"
 	"net/url"
 	"oauth2/src/dto"
@@ -78,8 +77,6 @@ func (h *oAuthControllerImpl) GetLogin(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
-
-	log.Println(loginResponse)
 
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(loginResponse)

@@ -60,7 +60,13 @@ export class LoginComponent implements OnInit {
     loginRequest.password = loginData.password;
 
     this.loginService.login(loginRequest).subscribe(data => {
-      window.location.href = `${data.redirect_uri}?token_type=${data.access_token.token_type}&expires_in=${data.access_token.expires_in}&access_token=${data.access_token.access_token}&refresh_token=${data.access_token.refresh_token}&state=${data.access_token.state}`
+      if(data.response_type == "token") {
+        window.location.href = `${data.redirect_uri}?token_type=${data.access_token.token_type}&expires_in=${data.access_token.expires_in}&access_token=${data.access_token.access_token}&refresh_token=${data.access_token.refresh_token}&state=${data.access_token.state}`
+      }
+
+      if(data.response_type == "code") {
+        window.location.href = `${data.redirect_uri}?state=${data.state}&code=${data.code}`
+      }
     }, error => {
       console.log(error.error.error);
     })

@@ -51,7 +51,10 @@ func (a authCodeRepository) FindById(id string) (*models.AuthCode, error) {
 
 func (a authCodeRepository) FindByCode(code string) (*models.AuthCode, error) {
 	authCode := models.AuthCode{}
-	result := a.conn.Where("code = ? ", code).First(&authCode)
+	result := a.conn.Where("code = ? ", code).
+		Preload("User").
+		Preload("Client").
+		First(&authCode)
 	if result.Error != nil {
 		return nil, result.Error
 	}

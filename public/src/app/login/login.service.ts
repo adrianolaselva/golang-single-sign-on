@@ -14,7 +14,7 @@ export class LoginService {
 
   login(loginRequest: LoginRequestModel): Observable<LoginResponseModel> {
     return this.http.post<LoginResponseModel>(
-      `http://localhost:9091/oauth2/login`, JSON.stringify(loginRequest), {
+      `/oauth2/login`, JSON.stringify(loginRequest), {
       headers: {
         "Content-Type": "application/json"
       }
