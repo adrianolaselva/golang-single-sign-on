@@ -33,6 +33,7 @@ type AuthFlow interface {
 	GetAccessToken() (*dto.AccessTokenResponseDTO, error)
 	GetAuthorizationCode() (*string, error)
 	Login(loginDTO dto.LoginDTO) (*dto.LoginResponseDTO, error)
+	ValidateAccessToken(accessToken string) (*jwt.Token, *AuthTokenClaim, error)
 	verifyCredentials() error
 	verifyClientAndSecret() error
 	verifyClient() error
@@ -153,17 +154,13 @@ func (o *authFlow) SetRequest(r *http.Request) error {
 	}
 
 	if len(auth) == 2 || auth[0] == "Bearer" {
-		claims := jwt.MapClaims{}
-		token, err := jwt.ParseWithClaims(auth[1], claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte(o.signature), nil
-		})
+		token, claims, err := o.ValidateAccessToken(auth[1])
 		if err == nil {
 			if err = claims.Valid(); err != nil {
 				return errors.Errorf(err.Error())
 			}
 
 			o.token = token
-
 			o.tokenType = auth[0]
 			o.accessToken = auth[1]
 		}
@@ -177,6 +174,21 @@ func (o *authFlow) SetRequest(r *http.Request) error {
 	}
 
 	return nil
+}
+
+func (o *authFlow) ValidateAccessToken(accessToken string) (*jwt.Token, *AuthTokenClaim, error) {
+	claims := &AuthTokenClaim{}
+	token, err := jwt.ParseWithClaims(accessToken, claims, func(token *jwt.Token) (interface{}, error) {
+		return []byte(o.signature), nil
+	})
+	if err == nil {
+		if err = claims.Valid(); err != nil {
+			return nil, nil, errors.Errorf(err.Error())
+		}
+	}
+
+
+	return token, claims, nil
 }
 
 // ValidateParameters: validate parameters by authentication flow

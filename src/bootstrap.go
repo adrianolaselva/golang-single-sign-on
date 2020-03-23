@@ -73,7 +73,7 @@ func (a * Bootstrap) Run() {
 	roleController := controllers.NewRoleController(roleService)
 
 	// Initialize middlewares
-	authenticationMiddleware := middlewares.NewAuthenticationMiddleware(userService)
+	authenticationMiddleware := middlewares.NewAuthenticationMiddleware(userService, authFlow)
 
 	routeCommon := common.Route{}
 	router.PathPrefix("/app").Handler(http.StripPrefix("/app", http.FileServer(http.Dir("./public/dist/app"))))

@@ -32,14 +32,13 @@ func (o *oAuthImpl) Routes() []*common.Route {
 		{
 			http.MethodPost,
 			"/oauth2/token",
-			o.authenticationMiddleware.
-				Filter(http.HandlerFunc(o.oAuthController.PostToken)),
+			http.HandlerFunc(o.oAuthController.PostToken),
 		},
 		{
 			http.MethodGet,
 			"/oauth2/user-info",
 			o.authenticationMiddleware.
-				ValidateJWTToken(http.HandlerFunc(o.oAuthController.PostToken), []string{}),
+				ValidateToken(http.HandlerFunc(o.oAuthController.PostToken), []string{}),
 		},
 		{
 			http.MethodPost,

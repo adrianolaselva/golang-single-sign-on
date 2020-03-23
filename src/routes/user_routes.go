@@ -28,31 +28,31 @@ func (o *userImpl) Routes() []*common.Route {
 			http.MethodGet,
 			"/v1/users/{uuid}",
 			o.authenticationMiddleware.
-				ValidateJWTToken(http.HandlerFunc(o.userController.GetUser), []string{"users:read"}),
+				ValidateToken(http.HandlerFunc(o.userController.GetUser), []string{"users:read"}),
 		},
 		{
 			http.MethodGet,
 			"/v1/users",
 			o.authenticationMiddleware.
-				ValidateJWTToken(http.HandlerFunc(o.userController.GetUsers), []string{"users:read"}),
+				ValidateToken(http.HandlerFunc(o.userController.GetUsers), []string{"users:read"}),
 		},
 		{
 			http.MethodPost,
 			"/v1/users",
 			o.authenticationMiddleware.
-				ValidateJWTToken(http.HandlerFunc(o.userController.PostUser), []string{"users:write"}),
+				ValidateToken(http.HandlerFunc(o.userController.PostUser), []string{"users:write"}),
 		},
 		{
 			http.MethodPut,
 			"/v1/users/{uuid}",
 			o.authenticationMiddleware.
-				ValidateJWTToken(http.HandlerFunc(o.userController.PutUser), []string{"users:write"}),
+				ValidateToken(http.HandlerFunc(o.userController.PutUser), []string{"users:write"}),
 		},
 		{
 			http.MethodDelete,
 			"/v1/users/{uuid}",
 			o.authenticationMiddleware.
-				ValidateJWTToken(http.HandlerFunc(o.userController.DeleteUser), []string{"users:delete"}),
+				ValidateToken(http.HandlerFunc(o.userController.DeleteUser), []string{"users:delete"}),
 		},
 	}
 }

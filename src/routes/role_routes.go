@@ -28,31 +28,31 @@ func (o *roleImpl) Routes() []*common.Route {
 			http.MethodGet,
 			"/v1/roles/{uuid}",
 			o.authenticationMiddleware.
-				ValidateJWTToken(http.HandlerFunc(o.roleController.GetRole), []string{"roles:read"}),
+				ValidateToken(http.HandlerFunc(o.roleController.GetRole), []string{"roles:read"}),
 		},
 		{
 			http.MethodGet,
 			"/v1/roles",
 			o.authenticationMiddleware.
-				ValidateJWTToken(http.HandlerFunc(o.roleController.GetRoles), []string{"roles:read"}),
+				ValidateToken(http.HandlerFunc(o.roleController.GetRoles), []string{"roles:read"}),
 		},
 		{
 			http.MethodPost,
 			"/v1/roles",
 			o.authenticationMiddleware.
-				ValidateJWTToken(http.HandlerFunc(o.roleController.PostRole), []string{"roles:write"}),
+				ValidateToken(http.HandlerFunc(o.roleController.PostRole), []string{"roles:write"}),
 		},
 		{
 			http.MethodPut,
 			"/v1/roles/{uuid}",
 			o.authenticationMiddleware.
-				ValidateJWTToken(http.HandlerFunc(o.roleController.PutRole), []string{"roles:write"}),
+				ValidateToken(http.HandlerFunc(o.roleController.PutRole), []string{"roles:write"}),
 		},
 		{
 			http.MethodDelete,
 			"/v1/roles/{uuid}",
 			o.authenticationMiddleware.
-				ValidateJWTToken(http.HandlerFunc(o.roleController.DeleteRole), []string{"roles:delete"}),
+				ValidateToken(http.HandlerFunc(o.roleController.DeleteRole), []string{"roles:delete"}),
 		},
 	}
 }
