@@ -3,7 +3,7 @@ package controllers_test
 import (
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
-	"log"
+	"github.com/subchen/go-log"
 	"oauth2/src/common"
 	"oauth2/src/controllers"
 	"oauth2/src/repository"

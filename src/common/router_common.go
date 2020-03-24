@@ -2,7 +2,7 @@ package common
 
 import (
 	"github.com/gorilla/mux"
-	"log"
+	"github.com/subchen/go-log"
 	"net/http"
 	"time"
 )

@@ -76,7 +76,7 @@ curl -XPOST 'https://api.aglaia.io/oauth/token' \
 redirect to uri for authentication
 
 ```sh
-curl -XGET 'http://localhost:9091/oauth2/authorize?response_type=token&client_id=a9832dab-598c-11ea-a5a2-0242c0a8a000&redirect_uri=https:%2F%2Fwebhook.site%2F365c600d-ce97-471a-805e-6076eef7f9aa&scope=user:read%20user:write%20user:delete&state=teste_1'
+curl -XGET 'http://localhost:9099/oauth2/authorize?response_type=token&client_id=a9832dab-598c-11ea-a5a2-0242c0a8a000&redirect_uri=https:%2F%2Fwebhook.site%2F365c600d-ce97-471a-805e-6076eef7f9aa&scope=user:read%20user:write%20user:delete&state=teste_1'
 ```
 
 callback with access_token

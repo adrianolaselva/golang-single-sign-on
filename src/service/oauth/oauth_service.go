@@ -6,7 +6,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gorilla/schema"
 	"github.com/pkg/errors"
-	"log"
+	"github.com/subchen/go-log"
 	"math/rand"
 	"net/http"
 	"net/url"

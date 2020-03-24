@@ -3,7 +3,7 @@ package middlewares
 import (
 	"encoding/base64"
 	"encoding/json"
-	"log"
+	"github.com/subchen/go-log"
 	"net/http"
 	"oauth2/src/dto"
 	"oauth2/src/service"

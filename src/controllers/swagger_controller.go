@@ -3,7 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"github.com/go-openapi/swag"
-	"log"
+	"github.com/subchen/go-log"
 	"net/http"
 )
 

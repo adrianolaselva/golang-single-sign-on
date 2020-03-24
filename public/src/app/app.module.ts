@@ -10,12 +10,14 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { OauthScopeComponent } from './oauth-scope/oauth-scope.component';
 import {HttpClientModule} from "@angular/common/http";
 import {CoreModule} from "./core/core.module";
+import { DashboardComponent } from './dashboard/dashboard.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
-    OauthScopeComponent
+    OauthScopeComponent,
+    DashboardComponent
   ],
   imports: [
     BrowserModule,

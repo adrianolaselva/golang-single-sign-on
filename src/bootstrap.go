@@ -6,8 +6,8 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
+	"github.com/subchen/go-log"
 	httpSwagger "github.com/swaggo/http-swagger"
-	"log"
 	"net/http"
 	"oauth2/src/common"
 	"oauth2/src/controllers"
@@ -29,7 +29,7 @@ func (a * Bootstrap) Run() {
 
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Println("file .env not found")
+		log.Printf("file .env not found")
 	}
 
 	db := common.Database{}

@@ -1,7 +1,7 @@
 package common
 
 import (
-    "log"
+    "github.com/subchen/go-log"
     "net/http"
     "time"
 )
@@ -12,11 +12,7 @@ func Logger(inner http.Handler) http.Handler {
 
         inner.ServeHTTP(w, r)
 
-        log.Printf(
-            "%s %s %s",
-            r.Method,
-            r.RequestURI,
-            time.Since(start),
-        )
+        log.Printf("[%s %s %s]", r.Method, r.RequestURI, time.Since(start))
     })
 }
+
