@@ -10,14 +10,21 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { OauthScopeComponent } from './oauth-scope/oauth-scope.component';
 import {HttpClientModule} from "@angular/common/http";
 import {CoreModule} from "./core/core.module";
-import { DashboardComponent } from './dashboard/dashboard.component';
+import { DashboardHomeComponent } from './dashboard/dashboard-home.component';
+import { CallbackComponent } from './callback/callback.component';
+import {AuthService} from "./auth/auth.service";
+import {AuthGuardService} from "./auth/auth-guard.service";
+import {JWT_OPTIONS, JwtModule} from "@auth0/angular-jwt";
+import { LogOffComponent } from './log-off/log-off.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     LoginComponent,
     OauthScopeComponent,
-    DashboardComponent
+    DashboardHomeComponent,
+    CallbackComponent,
+    LogOffComponent
   ],
   imports: [
     BrowserModule,
@@ -27,9 +34,31 @@ import { DashboardComponent } from './dashboard/dashboard.component';
     SharedModule,
     BrowserAnimationsModule,
     HttpClientModule,
-    CoreModule
+    CoreModule,
+    JwtModule.forRoot({
+      jwtOptionsProvider: {
+        provide: JWT_OPTIONS,
+        useFactory: jwtOptionsFactory
+      },
+      config: {
+        whitelistedDomains: ["localhost"],
+        headerName: "Authorization",
+        authScheme: "Bearer"
+      }
+    })
   ],
-  providers: [],
+  providers: [
+    AuthGuardService,
+    AuthService
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
+
+export function jwtOptionsFactory(tokenService) {
+  return {
+    tokenGetter: () => {
+      return sessionStorage.getItem("access_token");
+    }
+  }
+}

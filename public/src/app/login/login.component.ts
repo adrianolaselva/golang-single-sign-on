@@ -3,6 +3,7 @@ import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
 import {ActivatedRoute} from "@angular/router";
 import {LoginService} from "./login.service";
 import {LoginRequestModel} from "./login.request.model";
+import {environment} from "../../environments/environment";
 
 @Component({
   selector: 'app-login',
@@ -19,16 +20,27 @@ export class LoginComponent implements OnInit {
   state: string;
   scope: string;
 
+  errorMessage: string = null;
+  successMessage: string = null;
+
   constructor(private formBuilder: FormBuilder, private route: ActivatedRoute, private loginService: LoginService) { }
 
   ngOnInit(): void {
+    console.log(window.location.host)
+    console.log(window.location.protocol)
     this.route.queryParams.subscribe(params => {
-      this.responseType = params['response_type'];
-      this.clientId = params['client_id'];
-      this.redirectUri = params['redirect_uri'];
+      this.responseType = params['response_type'] ? params['response_type'] : "token";
+      this.clientId = params['client_id'] ? params['client_id'] : environment.CLIENT_ID;
+      this.redirectUri = params['redirect_uri'] ? params['redirect_uri'] : environment.REDIRECT_URL;
       this.state = params['state'];
       this.scope = params['scope'];
     });
+
+    console.log(this.responseType);
+    console.log(this.clientId);
+    console.log(this.redirectUri);
+    console.log(this.state);
+    console.log(this.scope);
 
     this.formLogin = this.formBuilder.group({
       username: '',
@@ -60,7 +72,11 @@ export class LoginComponent implements OnInit {
     loginRequest.password = loginData.password;
 
     this.loginService.login(loginRequest).subscribe(data => {
+      this.errorMessage = null;
+      this.successMessage = "autenticado com sucesso";
+
       if(data.response_type == "token") {
+        console.log(`${data.redirect_uri}?token_type=${data.access_token.token_type}&expires_in=${data.access_token.expires_in}&access_token=${data.access_token.access_token}&refresh_token=${data.access_token.refresh_token}&state=${data.access_token.state}`)
         window.location.href = `${data.redirect_uri}?token_type=${data.access_token.token_type}&expires_in=${data.access_token.expires_in}&access_token=${data.access_token.access_token}&refresh_token=${data.access_token.refresh_token}&state=${data.access_token.state}`
       }
 
@@ -68,7 +84,8 @@ export class LoginComponent implements OnInit {
         window.location.href = `${data.redirect_uri}?state=${data.state}&code=${data.code}`
       }
     }, error => {
-      console.log(error.error.error);
+      this.successMessage = null;
+      this.errorMessage = error.error.error;
     })
   }
 

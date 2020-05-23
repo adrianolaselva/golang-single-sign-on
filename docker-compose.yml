@@ -9,11 +9,13 @@ services:
       MYSQL_DATABASE: db_oauth
     command: mysqld --innodb-buffer-pool-size=64M
     volumes:
-      - db-oauth-server-go-data:/var/lib/mysql
+      - db-oauth-sso:/var/lib/mysql
     ports:
       - 13306:3306
     networks:
-      - stack
-networks: {stack: {}}
+      - bubble
+networks:
+  bubble:
+    external: true
 volumes:
-  db-oauth-server-go-data:
+  db-oauth-sso:

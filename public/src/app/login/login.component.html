@@ -1,5 +1,12 @@
 <div class="text-center">
 
+  <div *ngIf="errorMessage != null" class="alert alert-danger alert-dismissible">
+    <h4>{{ errorMessage }}</h4>
+  </div>
+  <div *ngIf="successMessage != null" class="alert alert-success alert-dismissible">
+    <h4>{{ successMessage }}</h4>
+  </div>
+
   <form class="form-signin" [formGroup]="formLogin" (ngSubmit)="onSubmit(formLogin.value)" novalidate>
     <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
 
@@ -13,13 +20,20 @@
       <input type="password" id="password" formControlName="password" class="form-control" placeholder="Password" required>
     </app-input-password-component>
 
-    <div class="checkbox mb-3">
-      <label>
-        <input type="checkbox" id="remember" value="remember-me"> Remember me
-      </label>
+    <div class="input-group mb-3">
+      <div class="icheck-primary">
+        <input type="checkbox" id="remember">
+        <label for="remember">
+          Remember Me
+        </label>
+      </div>
     </div>
 
-    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+    <div class="input-group mb-3">
+      <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+    </div>
+
+
     <p class="mt-5 mb-3 text-muted">&copy; 2020</p>
   </form>
   <div *ngIf="formLogin.errors?.username">error</div>

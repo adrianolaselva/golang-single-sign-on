@@ -106,10 +106,16 @@ func (a * Bootstrap) Run() {
 	})
 	origins := handlers.AllowedOrigins([]string{"*"})
 
+	server := &http.Server{
+		Addr: fmt.Sprintf(":%s", appPort),
+		Handler: handlers.CORS(headers, methods, origins)(router),
+		ReadTimeout: 5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+
 	log.Printf(fmt.Sprintf("Server started on port 0.0.0.0:%s", appPort))
 
-	err = http.ListenAndServe(fmt.Sprintf(":%s", appPort), handlers.CORS(headers, methods, origins)(router))
-
+	err = server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
 	}

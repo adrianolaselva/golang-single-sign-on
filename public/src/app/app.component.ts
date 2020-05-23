@@ -13,7 +13,7 @@ export class AppComponent implements OnInit{
   }
 
   ngOnInit(): void {
-    // this.router.navigate(["login"]).then(r => console.log(r))
+
   }
 
 }
