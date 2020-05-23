@@ -90,6 +90,10 @@ func (a * Bootstrap) Run() {
 		httpSwagger.DomID("#swagger-ui"),
 	))
 
+	router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, "/app", http.StatusTemporaryRedirect)
+	})
+
 	headers := handlers.AllowedHeaders([]string{
 		"Content-Type",
 		"X-Request",
