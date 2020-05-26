@@ -11,7 +11,6 @@ export class LogOffComponent implements OnInit {
   constructor(public router: Router) { }
 
   ngOnInit(): void {
-    console.log("logoff")
     sessionStorage.clear();
     this.router.navigate(['auth/login']);
   }

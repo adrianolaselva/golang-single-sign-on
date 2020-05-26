@@ -33,7 +33,10 @@ func (a * Bootstrap) Run() {
 	}
 
 	db := common.Database{}
-	conn := *db.Connect()
+	err, conn := db.Connect()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	defer conn.Close()
 
@@ -43,12 +46,12 @@ func (a * Bootstrap) Run() {
 	router := mux.NewRouter().StrictSlash(true)
 
 	// Initialize repositories
-	userRepository := repository.NewUserRepository(&conn)
-	roleRepository := repository.NewRoleRepository(&conn)
-	clientRepository := repository.NewClientRepository(&conn)
-	authCodeRepository := repository.NewAuthCodeRepository(&conn)
-	refreshTokenRepository := repository.NewRefreshTokenRepository(&conn)
-	accessTokenRepository := repository.NewAccessTokenRepository(&conn)
+	userRepository := repository.NewUserRepository(conn)
+	roleRepository := repository.NewRoleRepository(conn)
+	clientRepository := repository.NewClientRepository(conn)
+	authCodeRepository := repository.NewAuthCodeRepository(conn)
+	refreshTokenRepository := repository.NewRefreshTokenRepository(conn)
+	accessTokenRepository := repository.NewAccessTokenRepository(conn)
 
 	// Inicialize services
 	userService := service.NewUserService(userRepository)

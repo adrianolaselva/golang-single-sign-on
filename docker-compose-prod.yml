@@ -1,0 +1,31 @@
+version: '3.7'
+services:
+  midgard-sso:
+    container_name: midgard-sso
+    image: adrianolaselva/midgard:latest
+    restart: always
+    environment:
+      SSO_PORT: 9099
+      SSO_DB_CONNECTION_STRING: root:root@tcp(midgard-sso-db:3306)/midgard_sso?charset=utf8mb4&parseTime=true
+      SSO_JWT_SIGNATURE: b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABA
+    depends_on:
+      - midgard-sso-db
+    ports:
+      - 9099:9099
+    networks:
+      - bubble
+  midgard-sso-db:
+    container_name: midgard-sso-db
+    image: mysql
+    #    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_DATABASE: midgard_sso
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+    networks:
+      - bubble
+networks:
+  bubble:
+    external: true

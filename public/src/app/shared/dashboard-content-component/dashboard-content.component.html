@@ -1,6 +1,9 @@
 <!--<body class="sidebar-collapse">-->
 <body class="">
 
+  <div *ngIf="loadAnimationEnable == true" id="login-animation-load" class="overlay-wrapper">
+    <div class="overlay"><i class="fas fa-3x fa-sync-alt fa-spin"></i></div>
+  </div>
 
   <!-- navigate bar init -->
   <nav class="main-header navbar navbar-expand navbar-white navbar-light">
@@ -54,7 +57,7 @@
   <!-- Main Sidebar Container -->
   <aside class="main-sidebar navbar-expand sidebar-dark-primary elevation-4">
     <!-- Brand Logo -->
-    <a href="index3.html" class="brand-link">
+    <a [routerLink]="['/']" class="brand-link">
       <span class="brand-text font-weight-light"><i class="nav-icon fas fa-shield-alt"></i> Midgard SSO</span>
     </a>
 
@@ -77,19 +80,19 @@
             </a>
             <ul class="nav nav-treeview">
               <li class="nav-item">
-                <a href="admin/client/list" class="nav-link">
+                <a [routerLink]="['/admin/clients']" class="nav-link">
                   <i class="fas fa-layer-group nav-icon"></i>
                   <p>Clients</p>
                 </a>
               </li>
               <li class="nav-item">
-                <a href="admin/user/list" class="nav-link">
+                <a [routerLink]="['/admin/users']" class="nav-link">
                   <i class="fas fa-users nav-icon"></i>
                   <p>Users</p>
                 </a>
               </li>
               <li class="nav-item">
-                <a href="admin/role/list" class="nav-link">
+                <a [routerLink]="['/admin/roles']" class="nav-link">
                   <i class="fas fa-user-tag nav-icon"></i>
                   <p>Roles</p>
                 </a>
@@ -128,7 +131,7 @@
       <div class="container-fluid">
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1>Clients</h1>
+            <h1>{{ title }}</h1>
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -149,8 +152,7 @@
         <div class="card card-default color-palette-box">
           <div class="card-header">
             <h3 class="card-title">
-              <i class="fas fa-tag"></i>
-              {{ title }}
+              {{ subtitle }}
             </h3>
           </div>
           <div class="card-body">
@@ -174,8 +176,12 @@
 
   </div>
 
+  <a id="back-to-top" href="#" class="btn btn-primary back-to-top" role="button" aria-label="Scroll to top">
+    <i class="fas fa-chevron-up"></i>
+  </a>
+
 </body>
 
-<a id="back-to-top" href="#" class="btn btn-primary back-to-top" role="button" aria-label="Scroll to top">
-  <i class="fas fa-chevron-up"></i>
-</a>
+<div ajax-load-derective class="overlay-wrapper" style="display: none">
+  <div class="overlay"><i class="fas fa-3x fa-sync-alt fa-spin"></i></div>
+</div>

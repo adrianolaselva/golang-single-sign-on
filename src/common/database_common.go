@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"github.com/subchen/go-log"
+	"github.com/pkg/errors"
 	"os"
 )
 
@@ -13,19 +13,19 @@ type Database struct {
 
 }
 
-func (c *Database) Connect() *gorm.DB {
+func (c *Database) Connect() (error, *gorm.DB) {
 
 	db, err := gorm.Open("mysql", os.Getenv("SSO_DB_CONNECTION_STRING"))
 	if err != nil {
-		log.Printf("failed to connect database: %s", err)
+		return errors.Errorf("failed to connect database: %s", err), nil
 	}
 
-	//db.LogMode(true)
-	//db.DB().SetMaxIdleConns(10)
-	//db.DB().SetMaxOpenConns(100)
+	db.LogMode(false)
+	db.DB().SetMaxIdleConns(10)
+	db.DB().SetMaxOpenConns(100)
 	//db.DB().SetConnMaxLifetime(time.Hour)
 
-	return db
+	return nil, db
 }
 
 func (c *Database) InitializePaginate(conn *gorm.DB, out interface{}, filters *map[string]interface{}, orderBy *string, orderDir *string, limit int, page int, orderByDefault string, orderDirDefault string) (*sql.Rows, int, int, error) {

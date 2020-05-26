@@ -10,6 +10,7 @@ export class DashboardContentComponent implements OnInit, AfterContentInit {
   @Input() breadcrumbs: string;
   @Input() title: string;
   @Input() subtitle: boolean;
+  @Input() loadAnimationEnable: boolean = false;
 
   input: any;
 
@@ -23,6 +24,5 @@ export class DashboardContentComponent implements OnInit, AfterContentInit {
 
   ngAfterContentInit(): void {
     this.input = this.model || this.control;
-    console.log(this.breadcrumbs)
   }
 }

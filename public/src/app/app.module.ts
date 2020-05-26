@@ -1,7 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
+import { NgModule, LOCALE_ID } from '@angular/core';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component';
@@ -10,12 +9,18 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { OauthScopeComponent } from './oauth-scope/oauth-scope.component';
 import {HttpClientModule} from "@angular/common/http";
 import {CoreModule} from "./core/core.module";
-import { DashboardHomeComponent } from './dashboard/dashboard-home.component';
+import { DashboardHomeComponent } from './dashboard-home/dashboard-home.component';
 import { CallbackComponent } from './callback/callback.component';
 import {AuthService} from "./auth/auth.service";
 import {AuthGuardService} from "./auth/auth-guard.service";
 import {JWT_OPTIONS, JwtModule} from "@auth0/angular-jwt";
 import { LogOffComponent } from './log-off/log-off.component';
+import { ClientsComponent } from './clients/clients.component';
+import { RolesComponent } from './roles/roles.component';
+import { UsersComponent } from './users/users.component';
+import {InterceptorModule} from "./interceptors/interceptor.module";
+import {AjaxLoadBusyDirective} from "./directive/ajax-load.directive";
+
 
 @NgModule({
   declarations: [
@@ -24,7 +29,11 @@ import { LogOffComponent } from './log-off/log-off.component';
     OauthScopeComponent,
     DashboardHomeComponent,
     CallbackComponent,
-    LogOffComponent
+    LogOffComponent,
+    ClientsComponent,
+    RolesComponent,
+    UsersComponent,
+    AjaxLoadBusyDirective
   ],
   imports: [
     BrowserModule,
@@ -35,13 +44,14 @@ import { LogOffComponent } from './log-off/log-off.component';
     BrowserAnimationsModule,
     HttpClientModule,
     CoreModule,
+    InterceptorModule,
     JwtModule.forRoot({
       jwtOptionsProvider: {
         provide: JWT_OPTIONS,
         useFactory: jwtOptionsFactory
       },
       config: {
-        whitelistedDomains: ["localhost"],
+        // whitelistedDomains: ["localhost"],
         headerName: "Authorization",
         authScheme: "Bearer"
       }
@@ -49,7 +59,8 @@ import { LogOffComponent } from './log-off/log-off.component';
   ],
   providers: [
     AuthGuardService,
-    AuthService
+    AuthService,
+    {provide: LOCALE_ID, useValue: 'pt-BR'}
   ],
   bootstrap: [AppComponent]
 })

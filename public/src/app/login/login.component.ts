@@ -1,9 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import {FormBuilder, FormControl, FormGroup, Validators} from "@angular/forms";
-import {ActivatedRoute} from "@angular/router";
+import {ActivatedRoute, Router} from "@angular/router";
 import {LoginService} from "./login.service";
 import {LoginRequestModel} from "./login.request.model";
 import {environment} from "../../environments/environment";
+import {JwtHelperService} from "@auth0/angular-jwt";
+import {finalize} from "rxjs/operators";
 
 @Component({
   selector: 'app-login',
@@ -12,22 +14,28 @@ import {environment} from "../../environments/environment";
 })
 export class LoginComponent implements OnInit {
 
+  // loadAnimationEnable: boolean = true;
   formLogin;
-
   responseType: string;
   clientId: string;
   redirectUri: string;
   state: string;
   scope: string;
-
   errorMessage: string = null;
   successMessage: string = null;
 
-  constructor(private formBuilder: FormBuilder, private route: ActivatedRoute, private loginService: LoginService) { }
+  constructor(private formBuilder: FormBuilder,
+              private route: ActivatedRoute,
+              private loginService: LoginService,
+              public jwtHelper: JwtHelperService,
+              public router: Router) { }
 
   ngOnInit(): void {
-    console.log(window.location.host)
-    console.log(window.location.protocol)
+    if (!this.jwtHelper.isTokenExpired(sessionStorage.getItem('access_token'))) {
+      this.router.navigate(['admin']);
+      return;
+    }
+
     this.route.queryParams.subscribe(params => {
       this.responseType = params['response_type'] ? params['response_type'] : "token";
       this.clientId = params['client_id'] ? params['client_id'] : environment.CLIENT_ID;
@@ -35,12 +43,6 @@ export class LoginComponent implements OnInit {
       this.state = params['state'];
       this.scope = params['scope'];
     });
-
-    console.log(this.responseType);
-    console.log(this.clientId);
-    console.log(this.redirectUri);
-    console.log(this.state);
-    console.log(this.scope);
 
     this.formLogin = this.formBuilder.group({
       username: '',
@@ -71,12 +73,14 @@ export class LoginComponent implements OnInit {
     loginRequest.username = loginData.username;
     loginRequest.password = loginData.password;
 
-    this.loginService.login(loginRequest).subscribe(data => {
+    // this.loadAnimationEnable = true;
+    this.loginService.login(loginRequest).pipe(
+      // finalize(() => this.loadAnimationEnable = false)
+    ).subscribe(data => {
       this.errorMessage = null;
       this.successMessage = "autenticado com sucesso";
 
       if(data.response_type == "token") {
-        console.log(`${data.redirect_uri}?token_type=${data.access_token.token_type}&expires_in=${data.access_token.expires_in}&access_token=${data.access_token.access_token}&refresh_token=${data.access_token.refresh_token}&state=${data.access_token.state}`)
         window.location.href = `${data.redirect_uri}?token_type=${data.access_token.token_type}&expires_in=${data.access_token.expires_in}&access_token=${data.access_token.access_token}&refresh_token=${data.access_token.refresh_token}&state=${data.access_token.state}`
       }
 

@@ -10,8 +10,6 @@ export class DashboardHomeComponent implements OnInit {
   constructor() { }
 
   ngOnInit(): void {
-    console.log("dashboard")
-    console.log(sessionStorage.getItem("access_token"))
   }
 
 }

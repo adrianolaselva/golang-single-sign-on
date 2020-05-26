@@ -6258,6 +6258,18 @@ next-tick@~1.0.0:
   resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-1.0.0.tgz#ca86d1fe8828169b0120208e3dc8424b9db8342c"
   integrity sha1-yobR/ogoFpsBICCOPchCS524NCw=
 
+ngx-toast@^9.1.1:
+  version "1.1.4"
+  resolved "https://registry.yarnpkg.com/ngx-toast/-/ngx-toast-1.1.4.tgz#2da574a4e28dc42f7990e447d3403d20a4632a2f"
+  integrity sha1-LaV0pOKNxC95kORH00A9IKRjKi8=
+  dependencies:
+    ngx-toastr "^6.5.0"
+
+ngx-toastr@^6.5.0:
+  version "6.5.0"
+  resolved "https://registry.yarnpkg.com/ngx-toastr/-/ngx-toastr-6.5.0.tgz#d6a528b3229bf3a4d570c0e7523a3391b87dc4ef"
+  integrity sha512-7aJcNShznNpxNOR90JutJfab6QhDFqMWPe5mREeLdxZVtGbYGWJebuv2LZOg4Qh5wxOzNGNsozzVH6IO2WsK9Q==
+
 nice-try@^1.0.4:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
