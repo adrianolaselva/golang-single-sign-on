@@ -5,7 +5,7 @@ import {LoginService} from "./login.service";
 import {LoginRequestModel} from "./login.request.model";
 import {environment} from "../../environments/environment";
 import {JwtHelperService} from "@auth0/angular-jwt";
-import {finalize} from "rxjs/operators";
+import {ToastrService} from "ngx-toastr";
 
 @Component({
   selector: 'app-login',
@@ -28,7 +28,8 @@ export class LoginComponent implements OnInit {
               private route: ActivatedRoute,
               private loginService: LoginService,
               public jwtHelper: JwtHelperService,
-              public router: Router) { }
+              public router: Router,
+              private toastr: ToastrService) { }
 
   ngOnInit(): void {
     if (!this.jwtHelper.isTokenExpired(sessionStorage.getItem('access_token'))) {
@@ -78,7 +79,8 @@ export class LoginComponent implements OnInit {
       // finalize(() => this.loadAnimationEnable = false)
     ).subscribe(data => {
       this.errorMessage = null;
-      this.successMessage = "autenticado com sucesso";
+      // this.successMessage = "autenticado com sucesso";
+      this.toastr.success("autenticado com sucesso", "sucesso");
 
       if(data.response_type == "token") {
         window.location.href = `${data.redirect_uri}?token_type=${data.access_token.token_type}&expires_in=${data.access_token.expires_in}&access_token=${data.access_token.access_token}&refresh_token=${data.access_token.refresh_token}&state=${data.access_token.state}`
@@ -89,7 +91,12 @@ export class LoginComponent implements OnInit {
       }
     }, error => {
       this.successMessage = null;
-      this.errorMessage = error.error.error;
+      // this.errorMessage = error.error.error;
+      if (error.error.error) {
+        this.toastr.error(error.error.error, "falha");
+      }else {
+        this.toastr.error(error.message, "falha");
+      }
     })
   }
 

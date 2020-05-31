@@ -20,6 +20,7 @@ import { RolesComponent } from './roles/roles.component';
 import { UsersComponent } from './users/users.component';
 import {InterceptorModule} from "./interceptors/interceptor.module";
 import {AjaxLoadBusyDirective} from "./directive/ajax-load.directive";
+import { ToastrModule } from 'ngx-toastr';
 
 
 @NgModule({
@@ -55,7 +56,8 @@ import {AjaxLoadBusyDirective} from "./directive/ajax-load.directive";
         headerName: "Authorization",
         authScheme: "Bearer"
       }
-    })
+    }),
+    ToastrModule.forRoot()
   ],
   providers: [
     AuthGuardService,

@@ -5,7 +5,6 @@ import {HttpRequestInterceptor} from "./http-request.interceptor";
 import {HttpAjaxBusyInterceptor} from "./http-ajax-busy.interceptor";
 
 
-
 @NgModule({
   declarations: [],
   imports: [
